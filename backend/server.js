@@ -7,7 +7,7 @@ import userRouter from "./routes/userRoutes.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174", "https://billing-4va367tkw-rudra-das-projects-91aaaad8.vercel.app","https://billingapp-backend-zu9c.onrender.com"];
+const allowedOrigins = ["http://localhost:5173", "http://localhost:5174", "https://billing-4va367tkw-rudra-das-projects-91aaaad8.vercel.app","https://billingapp-y60b.onrender.com"];
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
