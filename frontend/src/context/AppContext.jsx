@@ -4,90 +4,99 @@ import { toast } from "react-toastify";
 
 export const AppContext = createContext();
 
-const AppContextProvider = (props) => {
+const AppContextProvider = ({ children }) => {
   const currencySymbol = "₹";
   const backendurl =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
-  const [token, setToken] = useState(
-    localStorage.getItem("token") ? localStorage.getItem("token") : false
-  );
-  const [isLoggedin, setIsLoggedin] = useState(!!localStorage.getItem("token"));
-  const [userData, setUserData] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [items, setItems] = useState("");
+  // const [token, setToken] = useState();
+  // const [isLoggedin, setIsLoggedin] = useState(!token);
+  const [isLoggedin, setIsLoggedin] = useState(false);
+
+  const [userData, setUserData] = useState(null);
+
+  const [items, setItems] = useState([]); // Changed from "" to []
   const [bills, setBills] = useState([]);
+
+  axios.defaults.withCredentials = true;
+
+  // ✅ Load User Data
 
   const loadUserData = async () => {
     try {
-      const { data } = await axios.get(backendurl + "/api/user/get-user-data", {
-        headers: {
-          token,
-        },
+      const { data } = await axios.get(`${backendurl}/api/user/get-user-data`, {
+        withCredentials: true, // ✅ Use cookies instead of token header
+      });
+      data.success ? setUserData(data.userData) : toast.error(data.message);
+    } catch (error) {
+      console.error("User Data Error:", error);
+      toast.error("Something went wrong while fetching user data.");
+    }
+  };
+
+  // ✅ Check Authentication State
+
+  const getAuthState = async () => {
+    try {
+      const { data } = await axios.get(`${backendurl}/api/user/is-auth`, {
+        withCredentials: true, // Ensure cookies are sent with the request
       });
       if (data.success) {
-        setUserData(data.userData);
-      } else {
-        toast.error(data.message);
+        setIsLoggedin(true);
+        loadUserData();
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Auth Error:", error);
+      toast.error("Please login again.");
     }
   };
 
-  const verification_status_user = async () => {
-    if (userData.isAccoutverified === true) {
-      setIsVerified(true);
-    }
-  };
-
+  // ✅ Get All Items
   const getAllItems = async () => {
     try {
       const { data } = await axios.post(
-        backendurl + "/api/user/all-items",
-        { userId: userData.userId },
+        `${backendurl}/api/user/all-items`,
+        { userId: userData?.userId },
         {
-          headers: {
-            token,
-          },
+          withCredentials: true, // ✅ Use cookies instead of token header
         }
       );
       if (data.success) {
         setItems(data.items);
       } else {
-        toast.error(data.message);
+        toast.error("Failed to fetch items.");
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Fetch Items Error:", error);
+      toast.error("Could not load items. Please try again.");
     }
   };
 
+  // ✅ Get All Bills
   const getAllBills = async () => {
     try {
-      const { data } = await axios.get(backendurl + "/api/user/all-bill", {
-        headers: {
-          token,
-        },
+      const { data } = await axios.get(`${backendurl}/api/user/all-bill`, {
+        withCredentials: true, // ✅ Use cookies instead of token header
       });
       if (data.success) {
         setBills(data.bills);
       } else {
-        toast.error(data.message);
+        toast.error("Failed to fetch bills.");
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Fetch Bills Error:", error);
+      toast.error("Could not load bills. Please try again.");
     }
   };
 
+  // ✅ Download Bill PDF
   const downloadBillPDF = async (billId) => {
     try {
       const response = await axios.get(
         `${backendurl}/api/user/bills/${billId}/pdf`,
         {
           responseType: "blob",
-          headers: {
-            token,
-          },
+          withCredentials: true, // ✅ Use cookies instead of token header
         }
       );
 
@@ -98,33 +107,29 @@ const AppContextProvider = (props) => {
         link.download = `bill_${billId}.pdf`;
         link.click();
       } else {
-        throw new Error("PDF data is not valid.");
+        throw new Error("Invalid PDF response.");
       }
     } catch (error) {
+      console.error("PDF Download Error:", error);
       toast.error("Error downloading PDF. Please try again.");
     }
   };
 
+  // ✅ Effect: Fetch Auth State on Mount
   useEffect(() => {
-    if (token) {
+    getAuthState();
+  }, []);
+
+  // ✅ Effect: Fetch Items & Bills if Token Exists
+  useEffect(() => {
+    if (isLoggedin) {
       getAllItems();
       getAllBills();
     }
-  }, [token]);
+  }, [isLoggedin]);
 
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem("token", token);
-      setIsLoggedin(true);
-    } else {
-      localStorage.removeItem("token");
-      setIsLoggedin(false);
-    }
-  }, [token]);
-
+  // ✅ Provide Context Values
   const value = {
-    token,
-    setToken,
     backendurl,
     isLoggedin,
     setIsLoggedin,
@@ -141,9 +146,7 @@ const AppContextProvider = (props) => {
     getAllBills,
   };
 
-  return (
-    <AppContext.Provider value={value}>{props.children}</AppContext.Provider>
-  );
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export default AppContextProvider;

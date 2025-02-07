@@ -7,6 +7,7 @@ import {
   getUserData,
   isAuthenticated,
   loginUser,
+  logout,
   newBill,
   registerUser,
   removeItems,
@@ -21,6 +22,7 @@ const userRouter = express.Router();
 
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
+userRouter.post("/logout", logout);
 userRouter.post("/send-verify-otp", authUser, sendVerifyOtp);
 userRouter.post("/verify-account", authUser, verifyEmail);
 userRouter.get("/is-auth", authUser, isAuthenticated);

@@ -21,31 +21,32 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { backendurl, token, setToken, setIsLoggedin } = useContext(AppContext);
+  const { backendurl, isLoggedin, setIsLoggedin, loadUserData } =
+    useContext(AppContext);
   const navigate = useNavigate();
 
   const REGISTER_URL = `${backendurl}/api/user/register`;
   const LOGIN_URL = `${backendurl}/api/user/login`;
 
   const onSubmitHandler = async (event) => {
-    event.preventDefault();
-
-    if (token) {
-      toast.error(
-        "You are already logged in. Please logout first.",
-        toastConfig
-      );
-      return;
-    }
+    // if (token) {
+    //   toast.error(
+    //     "You are already logged in. Please logout first.",
+    //     toastConfig
+    //   );
+    //   return;
 
     if (!email || !password || (state === "Sign Up" && !name)) {
       toast.error("Please fill in all required fields.", toastConfig);
       return;
     }
 
-    setLoading(true);
-
     try {
+      event.preventDefault();
+
+      setLoading(true);
+
+      axios.defaults.withCredentials = true;
       if (state === "Sign Up") {
         const { data } = await axios.post(REGISTER_URL, {
           name,
@@ -53,9 +54,8 @@ const Login = () => {
           password,
         });
         if (data.success) {
-          localStorage.setItem("token", data.token);
-          setToken(data.token);
           setIsLoggedin(true);
+          loadUserData();
           navigate("/email-verify");
           toast.success("Account created successfully!", toastConfig);
         } else {
@@ -67,9 +67,8 @@ const Login = () => {
       } else {
         const { data } = await axios.post(LOGIN_URL, { email, password });
         if (data.success) {
-          localStorage.setItem("token", data.token);
-          setToken(data.token);
           setIsLoggedin(true);
+          loadUserData();
           navigate("/");
           toast.success("Login successful!", toastConfig);
         } else {

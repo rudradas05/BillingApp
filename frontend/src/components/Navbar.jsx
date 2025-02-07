@@ -513,7 +513,7 @@
 
 // export default Navbar;
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import { AppContext } from "../context/AppContext";
@@ -524,9 +524,19 @@ import {
   RiStackLine,
   RiLogoutCircleRLine,
 } from "react-icons/ri";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const Navbar = () => {
-  const { token, setToken, setIsLoggedin } = useContext(AppContext);
+  const {
+    userData,
+    isLoggedIn,
+    setIsLoggedin,
+    backendurl,
+    setUserData,
+    setBills,
+    setItems,
+  } = useContext(AppContext);
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -554,16 +564,22 @@ const Navbar = () => {
     },
   ];
 
-  const logout = () => {
+  const logout = async () => {
     try {
-      setToken("");
-      localStorage.removeItem("token");
-      setIsLoggedin(false);
-      navigate("/");
+      axios.defaults.withCredentials = true;
+      const { data } = await axios.post(backendurl + "/api/user/logout");
+
+      if (data.success) {
+        setIsLoggedin(false); // ✅ Ensures UI updates
+        setUserData(null);
+        setBills([]);
+        setItems([]);
+        navigate("/");
+      } else {
+        toast.error("Logout failed. Please try again.");
+      }
     } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      setIsMenuOpen(false);
+      toast.error(error.response?.data?.message || "Logout failed.");
     }
   };
 
@@ -606,7 +622,7 @@ const Navbar = () => {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
-            {token ? (
+            {userData ? (
               <button
                 onClick={logout}
                 className="flex items-center space-x-2 bg-indigo-600 px-6 py-2 rounded-md 
@@ -679,7 +695,7 @@ const Navbar = () => {
               ))}
 
               <div className="mt-4 p-4 border-t border-gray-800">
-                {token ? (
+                {userData ? (
                   <button
                     onClick={logout}
                     className="w-full flex items-center justify-center space-x-2 

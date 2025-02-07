@@ -394,10 +394,6 @@ const AllBill = () => {
   const [expandedBill, setExpandedBill] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    getAllBills();
-  }, [getAllBills]);
-
   const filteredBills = bills.filter((bill) =>
     bill.name.toLowerCase().includes(searchQuery.toLowerCase())
   );

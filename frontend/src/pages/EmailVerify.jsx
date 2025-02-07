@@ -46,13 +46,67 @@ const EmailVerify = () => {
     });
   };
 
+  // const sendVerificationOtp = async () => {
+  //   try {
+  //     const userId = userData.userId;
+  //     const { data } = await axios.post(
+  //       `${backendurl}/api/user/send-verify-otp`,
+  //       { userId },
+  //       { headers: { token } }
+  //     );
+
+  //     if (data.success) {
+  //       toast.success("Verification OTP sent successfully", toastConfig);
+  //       setIsOtpSubmitted(true);
+  //     } else {
+  //       toast.error(data.message, toastConfig);
+  //     }
+  //   } catch (error) {
+  //     toast.error(error.message || "Something went wrong", toastConfig);
+  //   }
+  // };
+
+  // const verifyOtp = async (e) => {
+  //   e.preventDefault();
+  //   const otpArray = inputRefs.current.map((e) => e.value);
+  //   const enteredOtp = otpArray.join("");
+
+  //   if (enteredOtp.length !== 6) {
+  //     setIsOtpInvalid(true);
+  //     toast.error("Please enter a valid 6-digit OTP.", toastConfig);
+  //     return;
+  //   }
+
+  //   try {
+  //     const userId = userData.userId;
+  //     const { data } = await axios.post(
+  //       `${backendurl}/api/user/verify-account`,
+  //       { userId, otp: enteredOtp },
+  //       { headers: { token } }
+  //     );
+
+  //     if (data.success) {
+  //       toast.success("Email verified successfully!", toastConfig);
+  //       navigate("/");
+  //     } else {
+  //       setIsOtpInvalid(true);
+  //       toast.error(data.message, toastConfig);
+  //     }
+  //   } catch (error) {
+  //     toast.error(error.message || "Verification failed", toastConfig);
+  //   }
+  // };
+
   const sendVerificationOtp = async () => {
     try {
-      const userId = userData.userId;
+      const userId = userData?.userId;
+
       const { data } = await axios.post(
         `${backendurl}/api/user/send-verify-otp`,
         { userId },
-        { headers: { token } }
+        {
+          withCredentials: true, // 🔥 Allow cookies to be sent
+        }
       );
 
       if (data.success) {
@@ -62,7 +116,10 @@ const EmailVerify = () => {
         toast.error(data.message, toastConfig);
       }
     } catch (error) {
-      toast.error(error.message || "Something went wrong", toastConfig);
+      toast.error(
+        error.response?.data?.message || "Something went wrong",
+        toastConfig
+      );
     }
   };
 
@@ -78,11 +135,14 @@ const EmailVerify = () => {
     }
 
     try {
-      const userId = userData.userId;
+      const userId = userData?.userId;
+
       const { data } = await axios.post(
         `${backendurl}/api/user/verify-account`,
         { userId, otp: enteredOtp },
-        { headers: { token } }
+        {
+          withCredentials: true, // 🔥 Allow cookies to be sent
+        }
       );
 
       if (data.success) {
@@ -93,7 +153,10 @@ const EmailVerify = () => {
         toast.error(data.message, toastConfig);
       }
     } catch (error) {
-      toast.error(error.message || "Verification failed", toastConfig);
+      toast.error(
+        error.response?.data?.message || "Verification failed",
+        toastConfig
+      );
     }
   };
 

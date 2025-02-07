@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db.js";
 import userRouter from "./routes/userRoutes.js";
 
@@ -13,20 +14,21 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow non-browser requests (Postman, Curl)
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
+  origin: (origin, callback) => {
+    console.log("Request Origin:", origin);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
-      return callback(new Error("CORS_NOT_ALLOWED"));
+      callback(new Error("CORS_NOT_ALLOWED"));
     }
   },
   credentials: true,
+  optionsSuccessStatus: 200,
 };
 
-app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors(corsOptions));
 
 connectDB()
   .then(() => console.log("Database connected successfully"))
