@@ -6,7 +6,6 @@
       "use": "@vercel/node",
       "config": {
         "nodeVersion": "22.x",
-
         "maxLambdaSize": "50mb",
         "includeFiles": [
           "config/**",
@@ -21,16 +20,16 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server.js",
+      "dest": "/server.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
     },
     {
       "src": "/(.*)",
-      "dest": "server.js",
+      "dest": "/server.js",
       "status": 404
     }
   ]
