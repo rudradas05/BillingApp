@@ -748,7 +748,7 @@ const loginUser = async (req, res) => {
 
 const sendVerifyOtp = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.userId;
 
     const user = await userModel.findById(userId);
     if (user.isAccountVerified) {
@@ -840,9 +840,28 @@ const logout = async (req, res) => {
 
 const isAuthenticated = async (req, res) => {
   try {
-    return res.json({ success: true });
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Invalid token",
+      });
+    }
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    return res.json({
+      success: true,
+      userId: user._id,
+      isVerified: user.isAccountVerified,
+    });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error("Authentication error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -941,7 +960,13 @@ const resetPassword = async (req, res) => {
 
 const getUserData = async (req, res) => {
   try {
-    const { userId } = req.userId;
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: User ID not found",
+      });
+    }
     const userData = await userModel.findById(userId).select("-password");
     if (!userData) {
       return res
@@ -951,21 +976,29 @@ const getUserData = async (req, res) => {
     res.json({ success: true, userData });
   } catch (error) {
     console.error(error);
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 const addItems = async (req, res) => {
   try {
-    const { userId, name, price, quantity, category, subCategory } = req.body;
+    const userId = req.userId;
+    const { name, price, quantity, category, subCategory } = req.body;
 
-    if (!name || !price || !category === undefined) {
+    if (!userId || !name || !price || !category === undefined) {
       return res
         .status(400)
         .json({ success: false, message: "Please fill all fields" });
     }
 
-    const itemsData = { userId, name, price, quantity, category, subCategory };
+    const itemsData = {
+      userId,
+      name,
+      price,
+      quantity: quantity || 1,
+      category,
+      subCategory,
+    };
 
     const newItem = new productModel(itemsData);
     await newItem.save();
@@ -979,7 +1012,13 @@ const addItems = async (req, res) => {
 
 const getAllItems = async (req, res) => {
   try {
-    const { userId } = req.userId;
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: User ID not found",
+      });
+    }
     const items = await productModel.find({ userId });
     res.json({ success: true, items });
   } catch (error) {
@@ -1011,9 +1050,10 @@ const removeItems = async (req, res) => {
 
 const newBill = async (req, res) => {
   try {
-    const { name, address, items, total, userId } = req.body;
+    const userId = req.userId;
+    const { name, address, items, total } = req.body;
 
-    if (!name || !items || items.length === 0 || !total) {
+    if (!userId || !name || !items || items.length === 0 || !total) {
       return res
         .status(400)
         .json({ success: false, message: "Please fill all fields" });
@@ -1053,7 +1093,7 @@ const newBill = async (req, res) => {
 
 const getAllBill = async (req, res) => {
   try {
-    const { userId } = req.userId;
+    const userId = req.userId;
     const bills = await billModel.find({ userId });
     res.json({ success: true, bills });
   } catch (error) {
