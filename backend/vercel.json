@@ -5,7 +5,8 @@
       "src": "server.js",
       "use": "@vercel/node",
       "config": {
-        "nodeVersion": "18.x",
+        "nodeVersion": "22.x",
+
         "maxLambdaSize": "50mb",
         "includeFiles": [
           "config/**",
