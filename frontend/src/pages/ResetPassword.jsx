@@ -18,7 +18,7 @@ const ResetPassword = () => {
   const inputRefs = React.useRef([]);
   const toastConfig = {
     position: "top-right",
-    autoClose: 5000, // 5 seconds
+    autoClose: 5000,
     hideProgressBar: false,
     closeOnClick: true,
     pauseOnHover: true,
@@ -51,7 +51,7 @@ const ResetPassword = () => {
   const onSubmitEmail = async (e) => {
     e.preventDefault();
     try {
-      toast.info("Sending OTP...", toastConfig); // Indicate process start
+      toast.info("Sending OTP...", toastConfig);
       const { data } = await axios.post(
         `${backendurl}/api/user/send-reset-otp`,
         { email }

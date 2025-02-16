@@ -9,23 +9,19 @@ const AppContextProvider = ({ children }) => {
   const backendurl =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
-  // const [token, setToken] = useState();
-  // const [isLoggedin, setIsLoggedin] = useState(!token);
   const [isLoggedin, setIsLoggedin] = useState(false);
 
   const [userData, setUserData] = useState(null);
 
-  const [items, setItems] = useState([]); // Changed from "" to []
+  const [items, setItems] = useState([]);
   const [bills, setBills] = useState([]);
 
   axios.defaults.withCredentials = true;
 
-  // ✅ Load User Data
-
   const loadUserData = async () => {
     try {
       const { data } = await axios.get(`${backendurl}/api/user/get-user-data`, {
-        withCredentials: true, // ✅ Use cookies instead of token header
+        withCredentials: true,
       });
       data.success ? setUserData(data.userData) : toast.error(data.message);
     } catch (error) {
@@ -34,12 +30,10 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // ✅ Check Authentication State
-
   const getAuthState = async () => {
     try {
       const { data } = await axios.get(`${backendurl}/api/user/is-auth`, {
-        withCredentials: true, // Ensure cookies are sent with the request
+        withCredentials: true,
       });
       if (data.success) {
         setIsLoggedin(true);
@@ -51,14 +45,13 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // ✅ Get All Items
   const getAllItems = async () => {
     try {
       const { data } = await axios.post(
         `${backendurl}/api/user/all-items`,
         { userId: userData?.userId },
         {
-          withCredentials: true, // ✅ Use cookies instead of token header
+          withCredentials: true,
         }
       );
       if (data.success) {
@@ -72,11 +65,10 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // ✅ Get All Bills
   const getAllBills = async () => {
     try {
       const { data } = await axios.get(`${backendurl}/api/user/all-bill`, {
-        withCredentials: true, // ✅ Use cookies instead of token header
+        withCredentials: true,
       });
       if (data.success) {
         setBills(data.bills);
@@ -89,14 +81,13 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // ✅ Download Bill PDF
   const downloadBillPDF = async (billId) => {
     try {
       const response = await axios.get(
         `${backendurl}/api/user/bills/${billId}/pdf`,
         {
           responseType: "blob",
-          withCredentials: true, // ✅ Use cookies instead of token header
+          withCredentials: true,
         }
       );
 
@@ -115,12 +106,10 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // ✅ Effect: Fetch Auth State on Mount
   useEffect(() => {
     getAuthState();
   }, []);
 
-  // ✅ Effect: Fetch Items & Bills if Token Exists
   useEffect(() => {
     if (isLoggedin) {
       getAllItems();
@@ -128,7 +117,6 @@ const AppContextProvider = ({ children }) => {
     }
   }, [isLoggedin]);
 
-  // ✅ Provide Context Values
   const value = {
     backendurl,
     isLoggedin,

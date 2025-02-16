@@ -29,13 +29,6 @@ const Login = () => {
   const LOGIN_URL = `${backendurl}/api/user/login`;
 
   const onSubmitHandler = async (event) => {
-    // if (token) {
-    //   toast.error(
-    //     "You are already logged in. Please logout first.",
-    //     toastConfig
-    //   );
-    //   return;
-
     if (!email || !password || (state === "Sign Up" && !name)) {
       toast.error("Please fill in all required fields.", toastConfig);
       return;

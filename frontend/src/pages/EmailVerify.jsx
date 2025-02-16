@@ -46,7 +46,6 @@ const EmailVerify = () => {
     });
   };
 
-  // const sendVerificationOtp = async () => {
   //   try {
   //     const userId = userData.userId;
   //     const { data } = await axios.post(
@@ -105,7 +104,7 @@ const EmailVerify = () => {
         `${backendurl}/api/user/send-verify-otp`,
         { userId },
         {
-          withCredentials: true, // 🔥 Allow cookies to be sent
+          withCredentials: true,
         }
       );
 
@@ -141,7 +140,7 @@ const EmailVerify = () => {
         `${backendurl}/api/user/verify-account`,
         { userId, otp: enteredOtp },
         {
-          withCredentials: true, // 🔥 Allow cookies to be sent
+          withCredentials: true,
         }
       );
 

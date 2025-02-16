@@ -19,7 +19,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(null, false); // Instead of throwing an error
+    return callback(null, false);
   },
 
   credentials: true,
@@ -38,7 +38,7 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
-    return res.status(200).end(); // Handle preflight requests
+    return res.status(200).end();
   }
 
   next();
@@ -48,7 +48,7 @@ connectDB()
   .then(() => console.log("Database connected successfully"))
   .catch((err) => {
     console.error("Database connection error:", err.message);
-    process.exit(1); // Stop the server if DB connection fails
+    process.exit(1);
   });
 
 app.use("/api/user", userRouter);
@@ -57,9 +57,7 @@ app.get("/", (req, res) => {
   res.send("API is working!");
 });
 
-// 404 Handler Middleware for Vercel
 app.use((req, res, next) => {
-  // Check if this is an API route
   if (req.path.startsWith("/api")) {
     return res.status(404).json({
       404: "NOT_FOUND",
