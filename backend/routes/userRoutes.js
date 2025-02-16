@@ -35,4 +35,14 @@ userRouter.post("/remove-item", authUser, removeItems);
 userRouter.post("/new-bill", authUser, newBill);
 userRouter.get("/all-bill", authUser, getAllBill);
 userRouter.get("/bills/:billId/pdf", generateBillPDF);
+
+// Catch-all route for undefined endpoints
+userRouter.use((req, res) => {
+  res.status(404).json({
+    404: "NOT_FOUND",
+    Code: "NOT_FOUND",
+    ID: "bom1:bom1::n4sjw-1739695130886-7a1f38d4db21",
+  });
+});
+
 export default userRouter;

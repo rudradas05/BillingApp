@@ -846,6 +846,10 @@ const isAuthenticated = async (req, res) => {
   }
 };
 
+// const isAuthenticated = async (req, res) => {
+//   res.json({ success: true, userId: req.userId });
+// };
+
 const sendResetOtp = async (req, res) => {
   const { email } = req.body;
 
@@ -937,7 +941,7 @@ const resetPassword = async (req, res) => {
 
 const getUserData = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.userId;
     const userData = await userModel.findById(userId).select("-password");
     if (!userData) {
       return res
@@ -975,7 +979,7 @@ const addItems = async (req, res) => {
 
 const getAllItems = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.userId;
     const items = await productModel.find({ userId });
     res.json({ success: true, items });
   } catch (error) {
@@ -1049,7 +1053,7 @@ const newBill = async (req, res) => {
 
 const getAllBill = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.userId;
     const bills = await billModel.find({ userId });
     res.json({ success: true, bills });
   } catch (error) {

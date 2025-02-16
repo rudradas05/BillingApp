@@ -17,18 +17,32 @@ const corsOptions = {
   origin: (origin, callback) => {
     console.log("Request Origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS_NOT_ALLOWED"));
+      return callback(null, true);
     }
+    return callback(null, false); // Instead of throwing an error
   },
+
   credentials: true,
   optionsSuccessStatus: 200,
 };
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end(); // Handle preflight requests
+  }
+
+  next();
+});
 
 connectDB()
   .then(() => console.log("Database connected successfully"))
@@ -43,7 +57,34 @@ app.get("/", (req, res) => {
   res.send("API is working!");
 });
 
+// 404 Handler Middleware for Vercel
+app.use((req, res, next) => {
+  // Check if this is an API route
+  if (req.path.startsWith("/api")) {
+    return res.status(404).json({
+      404: "NOT_FOUND",
+      Code: "NOT_FOUND",
+      ID: "bom1:bom1::n4sjw-1739695130886-7a1f38d4db21",
+      message: "The requested API endpoint does not exist",
+      path: req.path,
+    });
+  }
+  next();
+});
+
+// Vercel-specific 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    404: "NOT_FOUND",
+    Code: "NOT_FOUND",
+    ID: "bom1:bom1::n4sjw-1739695130886-7a1f38d4db21",
+    message: "Resource not found",
+    path: req.path,
+  });
+});
+
 // Error Handling Middleware
+
 app.use((err, req, res, next) => {
   if (err.message === "CORS_NOT_ALLOWED") {
     return res.status(403).json({ error: "CORS policy violation" });

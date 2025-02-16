@@ -3,13 +3,34 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "nodeVersion": "18.x",
+        "maxLambdaSize": "50mb",
+        "includeFiles": [
+          "config/**",
+          "controllers/**",
+          "middlewares/**",
+          "models/**",
+          "routes/**"
+        ]
+      }
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "server.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
+    },
+    {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "server.js",
+      "status": 404
     }
   ]
 }
