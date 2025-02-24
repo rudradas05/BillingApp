@@ -8,9 +8,10 @@ import userRouter from "./routes/userRoutes.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
+const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  " https://medico-rouge.vercel.app",
 ];
 
 const corsOptions = {
