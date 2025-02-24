@@ -1,36 +1,16 @@
 {
   "version": 2,
+  "name": "backend",
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "nodeVersion": "22.x",
-        "maxLambdaSize": "50mb",
-        "includeFiles": [
-          "config/**",
-          "controllers/**",
-          "middlewares/**",
-          "models/**",
-          "routes/**"
-        ]
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
-    },
-    {
       "src": "/(.*)",
-      "dest": "/server.js",
-      "status": 404
+      "dest": "server.js"
     }
   ]
 }
