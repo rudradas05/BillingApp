@@ -30,15 +30,6 @@ app.get("/", (req, res) => {
 });
 
 // Vercel-specific 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    404: "NOT_FOUND",
-    Code: "NOT_FOUND",
-    ID: "bom1:bom1::n4sjw-1739695130886-7a1f38d4db21",
-    message: "Resource not found",
-    path: req.path,
-  });
-});
 
 // Error Handling Middleware
 
