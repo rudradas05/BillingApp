@@ -404,6 +404,126 @@ const getAllBill = async (req, res) => {
   }
 };
 
+const generateBillPDF = async (req, res) => {
+  const { billId } = req.params;
+
+  try {
+    const billData = await billModel.findById(billId);
+
+    if (!billData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Bill not found" });
+    }
+
+    const browser = await puppeteer.launch({
+      headless: "new", // Fix Puppeteer issue
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+
+    const billHTML = `<!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .header { text-align: center; margin-bottom: 20px; }
+          .header h1 { font-size: 24px; margin: 0; }
+          .header p { margin: 0; font-size: 14px; color: gray; }
+          .details { margin-bottom: 20px; }
+          .details p { margin: 5px 0; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f4f4f4; }
+          .total { text-align: right; margin-top: 20px; font-size: 18px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Das Jewellery Box & Bag Supply</h1>
+          <p>Prop. Mantu Das</p>
+          <p>Khalore, Bagnan, Howrah</p>
+        </div>
+        <div class="details">
+          <p><strong>Customer Name:</strong> ${billData.name}</p>
+          <p><strong>Address:</strong> ${billData.address || "N/A"}</p>
+          <p><strong>Date:</strong> ${new Date(
+            billData.date
+          ).toLocaleDateString()}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Item No.</th>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Rate</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${billData.items
+              .map(
+                (item, index) => `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+                <td>${item.rate.toFixed(2)}</td>
+                <td>${item.amount.toFixed(2)}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+        <div class="total">
+          <p><strong>Total:</strong> ${billData.total.toFixed(2)}</p>
+        </div>
+      </body>
+      </html>`;
+
+    await page.setContent(billHTML, { waitUntil: "domcontentloaded" });
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      path: null,
+    });
+
+    await browser.close();
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="bill_${billId}.pdf"`,
+      "Content-Length": pdfBuffer.length,
+    });
+
+    res.status(200).end(pdfBuffer);
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ success: false, message: "Error generating PDF" });
+  }
+};
+
+export {
+  registerUser,
+  loginUser,
+  sendVerifyOtp,
+  verifyEmail,
+  isAuthenticated,
+  sendResetOtp,
+  resetPassword,
+  getUserData,
+  addItems,
+  getAllItems,
+  removeItems,
+  newBill,
+  getAllBill,
+  generateBillPDF,
+};
+
 // const generateBillPDF = async (req, res) => {
 //   const { billId } = req.params;
 
@@ -502,123 +622,3 @@ const getAllBill = async (req, res) => {
 //     res.status(500).json({ success: false, message: "Error generating PDF" });
 //   }
 // };
-
-const generateBillPDF = async (req, res) => {
-  const { billId } = req.params;
-
-  try {
-    const billData = await billModel.findById(billId);
-
-    if (!billData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Bill not found" });
-    }
-
-    const browser = await puppeteer.launch({
-      headless: "new", // Fix Puppeteer issue
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
-
-    const page = await browser.newPage();
-
-    const billHTML = `<!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; margin-bottom: 20px; }
-          .header h1 { font-size: 24px; margin: 0; }
-          .header p { margin: 0; font-size: 14px; color: gray; }
-          .details { margin-bottom: 20px; }
-          .details p { margin: 5px 0; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f4f4f4; }
-          .total { text-align: right; margin-top: 20px; font-size: 18px; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Das Jewellery Box & Bag Supply</h1>
-          <p>Prop. Mantu Das</p>
-          <p>Khalore, Bagnan, Howrah</p>
-        </div>
-        <div class="details">
-          <p><strong>Customer Name:</strong> ${billData.name}</p>
-          <p><strong>Address:</strong> ${billData.address || "N/A"}</p>
-          <p><strong>Date:</strong> ${new Date(
-            billData.date
-          ).toLocaleDateString()}</p>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Item No.</th>
-              <th>Description</th>
-              <th>Quantity</th>
-              <th>Rate</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${billData.items
-              .map(
-                (item, index) => `
-              <tr>
-                <td>${index + 1}</td>
-                <td>${item.name}</td>
-                <td>${item.quantity}</td>
-                <td>${item.rate.toFixed(2)}</td>
-                <td>${item.amount.toFixed(2)}</td>
-              </tr>
-            `
-              )
-              .join("")}
-          </tbody>
-        </table>
-        <div class="total">
-          <p><strong>Total:</strong> ${billData.total.toFixed(2)}</p>
-        </div>
-      </body>
-      </html>`;
-
-    await page.setContent(billHTML, { waitUntil: "domcontentloaded" });
-
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      path: null, // Ensure correct buffer generation
-    });
-
-    await browser.close();
-
-    res.set({
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="bill_${billId}.pdf"`,
-      "Content-Length": pdfBuffer.length, // Ensure correct file size
-    });
-
-    res.status(200).end(pdfBuffer);
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-    res.status(500).json({ success: false, message: "Error generating PDF" });
-  }
-};
-
-export {
-  registerUser,
-  loginUser,
-  sendVerifyOtp,
-  verifyEmail,
-  isAuthenticated,
-  sendResetOtp,
-  resetPassword,
-  getUserData,
-  addItems,
-  getAllItems,
-  removeItems,
-  newBill,
-  getAllBill,
-  generateBillPDF,
-};

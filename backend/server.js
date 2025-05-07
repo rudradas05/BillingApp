@@ -12,7 +12,7 @@ const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
   : ["http://localhost:5173", "http://localhost:5174"];
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow non-browser requests
+    if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
@@ -30,7 +30,7 @@ connectDB()
   .then(() => console.log("Database connected successfully"))
   .catch((err) => {
     console.error("Database connection error:", err.message);
-    process.exit(1); // Stop the server if DB connection fails
+    process.exit(1);
   });
 
 app.use("/api/user", userRouter);
@@ -39,7 +39,6 @@ app.get("/", (req, res) => {
   res.send("API is working!");
 });
 
-// Error Handling Middleware
 app.use((err, req, res, next) => {
   if (err.message === "CORS_NOT_ALLOWED") {
     return res.status(403).json({ error: "CORS policy violation" });
