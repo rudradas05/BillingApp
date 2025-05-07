@@ -7,14 +7,10 @@ import userRouter from "./routes/userRoutes.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
-  "http://localhost:5173",
-  "http://localhost:5174",
-];
-
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow non-browser requests (Postman, Curl)
+    if (!origin) return callback(null, true); // Allow non-browser requests
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
