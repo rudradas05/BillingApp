@@ -12,7 +12,7 @@ const toastConfig = {
 };
 
 const Login = () => {
-  const [state, setState] = useState("Sign Up");
+  const [state, setState] = useState("Login");
   const [signUpStep, setSignUpStep] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,8 +22,7 @@ const Login = () => {
   const [companyName, setCompanyName] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { backendurl, token, setToken, setIsLoggedin } =
-    useContext(AppContext);
+  const { backendurl, token, setToken, setIsLoggedin } = useContext(AppContext);
   const navigate = useNavigate();
 
   const REGISTER_URL = `${backendurl}/api/user/register`;
@@ -75,7 +74,7 @@ const Login = () => {
       } catch (error) {
         toast.error(
           error.response?.data?.message || "Signup failed",
-          toastConfig
+          toastConfig,
         );
       } finally {
         setLoading(false);
@@ -127,9 +126,7 @@ const Login = () => {
           </p>
 
           {state === "Sign Up" && (
-            <p className="mt-3 text-xs text-gray-500">
-              Step {signUpStep} of 2
-            </p>
+            <p className="mt-3 text-xs text-gray-500">Step {signUpStep} of 2</p>
           )}
         </div>
 
@@ -237,10 +234,10 @@ const Login = () => {
               {loading
                 ? "Processing..."
                 : state === "Sign Up"
-                ? signUpStep === 1
-                  ? "Continue"
-                  : "Create account"
-                : "Login"}
+                  ? signUpStep === 1
+                    ? "Continue"
+                    : "Create account"
+                  : "Login"}
             </button>
           </div>
         </form>
