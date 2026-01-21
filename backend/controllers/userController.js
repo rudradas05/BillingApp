@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import productModel from "../models/productModels.js";
 import billModel from "../models/billModel.js";
-import puppeteer from "puppeteer";
+
 import PDFDocument from "pdfkit";
 
 
