@@ -14,6 +14,8 @@ const billSchema = new mongoose.Schema({
   ],
   total: { type: Number, required: true },
   date: { type: Date, default: Date.now },
+  invoiceNo: { type: String, required: true }
+
 });
 
 const billModel = mongoose.models.bill || mongoose.model("bill", billSchema);
