@@ -5,16 +5,7 @@ import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import productModel from "../models/productModels.js";
 import billModel from "../models/billModel.js";
-let puppeteer;
-let chromium;
-const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_VERSION;
-if (isServerless) {
-  // Use chrome-aws-lambda for Vercel/serverless
-  chromium = await import("chrome-aws-lambda");
-  puppeteer = await import("puppeteer");
-} else {
-  puppeteer = await import("puppeteer");
-}
+import puppeteer from "puppeteer";
 
 const registerUser = async (req, res) => {
   try {
@@ -426,21 +417,10 @@ const generateBillPDF = async (req, res) => {
         .json({ success: false, message: "Bill not found" });
     }
 
-    let browser;
-    if (isServerless) {
-      browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath,
-        headless: chromium.headless,
-        ignoreHTTPSErrors: true,
-      });
-    } else {
-      browser = await puppeteer.launch({
-        headless: "new",
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
-    }
+    const browser = await puppeteer.launch({
+      headless: "new", // Fix Puppeteer issue
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
 
     const page = await browser.newPage();
 
