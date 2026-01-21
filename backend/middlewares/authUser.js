@@ -8,8 +8,8 @@ const authUser = async (req, res, next) => {
         .status(401)
         .json({ success: false, message: "No Authorised Login Again" });
     }
-    const toekn_decode = jwt.verify(token, process.env.JWT_SECRET);
-    req.body.userId = toekn_decode.id;
+    const token_decode = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = token_decode.id;
     next();
   } catch (error) {
     console.error(error);

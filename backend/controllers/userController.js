@@ -1,5 +1,5 @@
 import validator from "validator";
-import transporter from "../config/nodemailer.js";
+import { resend } from "../config/resend.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
@@ -9,66 +9,82 @@ import puppeteer from "puppeteer";
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phoneNumber, companyName, address } = req.body;
+
+    // Validate required fields
     if (!name || !email || !password) {
+      console.log("Missing required fields:", { name: !!name, email: !!email, password: !!password });
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "Name, email, and password are required" });
     }
 
+    // Validate email format
     if (!validator.isEmail(email)) {
+      console.log("Invalid email format:", email);
       return res
         .status(400)
         .json({ success: false, message: "Enter a valid email" });
     }
 
+    // Check if user already exists
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
+      console.log("User already exists with email:", email);
       return res
         .status(400)
-        .json({ success: false, message: "Email already exists" });
+        .json({ success: false, message: "Email already registered" });
     }
 
+    // Validate password length
     if (password.length < 8) {
+      console.log("Password too short:", password.length);
       return res.status(400).json({
         success: false,
         message: "Password must be at least 8 characters long",
       });
     }
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create user data
     const userData = {
       name,
       email,
       password: hashedPassword,
+      phoneNumber: phoneNumber || "",
+      companyName: companyName || "",
+      address: address || "",
     };
+
+    // Save user
     const newUser = new userModel(userData);
     const user = await newUser.save();
 
+    // Generate token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
-    res.json({ success: true, token });
+    // Send welcome email
+    try {
+      await resend.emails.send({
+        from: process.env.SENDER_EMAIL,
+        to: email,
+        subject: "Welcome to Das Jewellery Box & Bag MFG.",
+        html: `<p>Welcome to Invoice Master Pro, ${name}. Your account has been created with email id: ${email}</p>`,
+      });
+    } catch (emailError) {
+      console.log("Email sending failed (non-critical):", emailError.message);
+      // Continue even if email fails
+    }
 
-    const mailOptions = {
-      from: process.env.SENDER_EMAIL,
-      to: email,
-      subject: "Welcome to Das Jewellery Box & Bag MFG.",
-      text: `Welcome to Das Jewellery Box & Bag MFG., ${name}. Your account has been created with email id: ${email}`,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email:", error);
-      } else {
-        console.log("Email sent successfully:", info.response);
-      }
-    });
+    res.json({ success: true, token, userId: user._id });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error("Error in registerUser:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -125,26 +141,18 @@ const sendVerifyOtp = async (req, res) => {
     user.verifyotpExpireAt = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    const mailOptions = {
+    await resend.emails.send({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Verify your account",
-      text: `Verify your account. Your verification code is: ${otp}`,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email:", error);
-      } else {
-        console.log("Email sent successfully:", info.response);
-      }
+      html: `<p>Verify your account. Your verification code is: ${otp}</p>`,
     });
     res.json({
       success: true,
       message: "Verification code sent to your email",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in sendVerifyOtp:", error);
     res.json({ success: false, message: error.message });
   }
 };
@@ -224,29 +232,18 @@ const sendResetOtp = async (req, res) => {
     user.resetOtpExpireAt = Date.now() + 300000;
     await user.save();
 
-    const mailOptions = {
+    await resend.emails.send({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Password Reset OTP",
-      text: `Your password reset OTP is: ${otp}`,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email:", error);
-        return res
-          .status(500)
-          .json({ success: false, message: "Failed to send email" });
-      } else {
-        console.log("Email sent:", info.response);
-        return res.json({
-          success: true,
-          message: "Password reset OTP sent successfully",
-        });
-      }
+      html: `<p>Your password reset OTP is: ${otp}</p>`,
+    });
+    return res.json({
+      success: true,
+      message: "Password reset OTP sent successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in sendResetOtp:", error);
     res.json({ success: false, message: error.message });
   }
 };
@@ -288,7 +285,7 @@ const resetPassword = async (req, res) => {
 
 const getUserData = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req;
     const userData = await userModel.findById(userId).select("-password");
     res.json({ success: true, userData });
   } catch (error) {
@@ -299,12 +296,14 @@ const getUserData = async (req, res) => {
 
 const addItems = async (req, res) => {
   try {
-    const { userId, name, price, quantity, category, subCategory } = req.body;
+    const { name, price, quantity, category, subCategory } = req.body;
+    const { userId } = req;
 
-    if (!name || !price || !category === undefined) {
+
+    if (!name || price === undefined || !category) {
       return res
         .status(400)
-        .json({ success: false, message: "Please fill all fields" });
+        .json({ success: false, message: "Name, price, and category are required" });
     }
 
     const itemsData = { userId, name, price, quantity, category, subCategory };
@@ -321,7 +320,7 @@ const addItems = async (req, res) => {
 
 const getAllItems = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req;
     const items = await productModel.find({ userId });
     res.json({ success: true, items });
   } catch (error) {
@@ -353,7 +352,8 @@ const removeItems = async (req, res) => {
 
 const newBill = async (req, res) => {
   try {
-    const { name, address, items, total, userId } = req.body;
+    const { name, address, items, total } = req.body;
+    const { userId } = req;
 
     if (!name || !items || items.length === 0 || !total) {
       return res
@@ -395,7 +395,7 @@ const newBill = async (req, res) => {
 
 const getAllBill = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req;
     const bills = await billModel.find({ userId });
     res.json({ success: true, bills });
   } catch (error) {
@@ -409,6 +409,7 @@ const generateBillPDF = async (req, res) => {
 
   try {
     const billData = await billModel.findById(billId);
+    const userData = await userModel.findById(billData.userId);
 
     if (!billData) {
       return res
@@ -427,59 +428,76 @@ const generateBillPDF = async (req, res) => {
       <html>
       <head>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; margin-bottom: 20px; }
-          .header h1 { font-size: 24px; margin: 0; }
-          .header p { margin: 0; font-size: 14px; color: gray; }
-          .details { margin-bottom: 20px; }
-          .details p { margin: 5px 0; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f4f4f4; }
-          .total { text-align: right; margin-top: 20px; font-size: 18px; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; color: #222; padding: 0; margin: 0; }
+          .container { max-width: 700px; margin: 32px auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px #0001; padding: 32px 40px 40px 40px; }
+          .header { text-align: center; margin-bottom: 32px; }
+          .logo { width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px; }
+          .company { font-size: 2rem; font-weight: 700; color: #0891b2; letter-spacing: 1px; }
+          .owner { color: #64748b; font-size: 1rem; margin-bottom: 2px; }
+          .address { color: #64748b; font-size: 0.95rem; }
+          .details { margin-bottom: 28px; border-radius: 8px; background: #f1f5f9; padding: 18px 24px; }
+          .details p { margin: 6px 0; font-size: 1rem; }
+          .details strong { color: #0e7490; }
+          table { width: 100%; border-collapse: collapse; margin-top: 18px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px #0001; }
+          th, td { padding: 12px 10px; text-align: left; }
+          th { background: #e0f2fe; color: #0369a1; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #bae6fd; }
+          tr:nth-child(even) { background: #f8fafc; }
+          tr:nth-child(odd) { background: #f1f5f9; }
+          td { font-size: 0.98rem; color: #222; border-bottom: 1px solid #e5e7eb; }
+          .summary { margin-top: 24px; text-align: right; }
+          .summary p { font-size: 1.1rem; margin: 2px 0; }
+          .total { font-size: 1.3rem; color: #0891b2; font-weight: 700; margin-top: 8px; }
+          .footer { margin-top: 36px; text-align: center; color: #64748b; font-size: 1rem; }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>Das Jewellery Box & Bag Supply</h1>
-          <p>Prop. Mantu Das</p>
-          <p>Khalore, Bagnan, Howrah</p>
-        </div>
-        <div class="details">
-          <p><strong>Customer Name:</strong> ${billData.name}</p>
-          <p><strong>Address:</strong> ${billData.address || "N/A"}</p>
-          <p><strong>Date:</strong> ${new Date(
-            billData.date
-          ).toLocaleDateString()}</p>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Item No.</th>
-              <th>Description</th>
-              <th>Quantity</th>
-              <th>Rate</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${billData.items
-              .map(
-                (item, index) => `
+        <div class="container">
+          <div class="header">
+            <img src="https://img.icons8.com/fluency/96/invoice.png" class="logo" alt="logo" />
+            <div class="company">${userData.companyName}</div>
+            <div class="owner">Prop. ${userData.name}</div>
+            <div class="address">${userData.address}</div>
+          </div>
+          <div class="details">
+            <p><strong>Customer Name:</strong> ${billData.name}</p>
+            <p><strong>Address:</strong> ${billData.address || "N/A"}</p>
+            <p><strong>Date:</strong> ${new Date(billData.date).toLocaleDateString()}</p>
+          </div>
+          <table>
+            <thead>
               <tr>
-                <td>${index + 1}</td>
-                <td>${item.name}</td>
-                <td>${item.quantity}</td>
-                <td>${item.rate.toFixed(2)}</td>
-                <td>${item.amount.toFixed(2)}</td>
+                <th>#</th>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Rate</th>
+                <th>Amount</th>
               </tr>
-            `
-              )
-              .join("")}
-          </tbody>
-        </table>
-        <div class="total">
-          <p><strong>Total:</strong> ${billData.total.toFixed(2)}</p>
+            </thead>
+            <tbody>
+              ${billData.items
+        .map(
+          (item, index) => `
+                    <tr>
+                      <td>${index + 1}</td>
+                      <td>${item.name}</td>
+                      <td>${item.quantity}</td>
+                      <td>${item.rate.toFixed(2)}</td>
+                      <td>${item.amount.toFixed(2)}</td>
+                    </tr>
+                  `
+        )
+        .join("")}
+            </tbody>
+          </table>
+          <div class="summary">
+            <p><strong>Subtotal:</strong> ${billData.total.toFixed(2)}</p>
+            <p><strong>Paid:</strong> 0.00</p>
+            <div class="total">Total Due: ${billData.total.toFixed(2)}</div>
+          </div>
+          <div class="footer">
+            Thank you for your business!<br />
+            <span style="font-size:0.95rem;">For queries, contact us at <b>${userData.phoneNumber || "N/A"}</b></span>
+          </div>
         </div>
       </body>
       </html>`;
@@ -507,6 +525,29 @@ const generateBillPDF = async (req, res) => {
   }
 };
 
+const updateUserData = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { name, phoneNumber, companyName, address } = req.body;
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.name = name || user.name;
+    user.phoneNumber = phoneNumber || user.phoneNumber;
+    user.companyName = companyName || user.companyName;
+    user.address = address || user.address;
+
+    await user.save();
+    res.json({ success: true, userData: user, message: "User data updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -516,6 +557,7 @@ export {
   sendResetOtp,
   resetPassword,
   getUserData,
+  updateUserData,
   addItems,
   getAllItems,
   removeItems,
@@ -523,6 +565,7 @@ export {
   getAllBill,
   generateBillPDF,
 };
+
 
 // const generateBillPDF = async (req, res) => {
 //   const { billId } = req.params;

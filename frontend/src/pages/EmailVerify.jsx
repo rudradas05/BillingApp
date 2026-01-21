@@ -48,7 +48,11 @@ const EmailVerify = () => {
 
   const sendVerificationOtp = async () => {
     try {
-      const userId = userData.userId;
+      if (!userData || !userData._id) {
+        toast.error("User data not loaded. Please refresh and try again.", toastConfig);
+        return;
+      }
+      const userId = userData._id;
       const { data } = await axios.post(
         `${backendurl}/api/user/send-verify-otp`,
         { userId },
@@ -78,7 +82,11 @@ const EmailVerify = () => {
     }
 
     try {
-      const userId = userData.userId;
+      if (!userData || !userData._id) {
+        toast.error("User data not loaded. Please refresh and try again.", toastConfig);
+        return;
+      }
+      const userId = userData._id;
       const { data } = await axios.post(
         `${backendurl}/api/user/verify-account`,
         { userId, otp: enteredOtp },
@@ -105,56 +113,60 @@ const EmailVerify = () => {
     }`;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh]">
-      <h1 className="text-2xl font-semibold mb-4">
-        Welcome to Das Jewellery Box & Bag MFG.
-      </h1>
-      <p className="mb-6 text-center">
-        For the first time and to stay updated with us, please verify your
-        email.
-      </p>
-
-      {!isOtpSubmitted ? (
-        <button
-          onClick={sendVerificationOtp}
-          className="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-violet-900 text-white font-medium"
-        >
-          Send Verification OTP
-        </button>
-      ) : (
-        <form
-          onSubmit={verifyOtp}
-          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
-        >
-          <h1 className="text-white text-2xl font-semibold text-center mb-4">
-            Verify Email
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 pt-24 pb-12 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-2xl shadow-lg p-8 backdrop-blur-md">
+        <div className="flex flex-col items-center justify-center min-h-[80vh]">
+          <h1 className="text-2xl font-semibold mb-4">
+            Welcome to InvoiceMaster Pro
           </h1>
-          <p className="text-center mb-6 text-indigo-300">
-            Enter the 6-digit code sent to your email ID.
+          <p className="mb-6 text-center">
+            For the first time and to stay updated with us, please verify your
+            email.
           </p>
-          <div className="flex justify-between mb-8" onPaste={handlePaste}>
-            {Array(6)
-              .fill("")
-              .map((_, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  maxLength="1"
-                  className={inputClass(index)}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  onInput={(e) => handleInput(e, index)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                />
-              ))}
-          </div>
-          <button
-            type="submit"
-            className="w-full py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-900 text-white font-medium"
-          >
-            Verify OTP
-          </button>
-        </form>
-      )}
+
+          {!isOtpSubmitted ? (
+            <button
+              onClick={sendVerificationOtp}
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-violet-900 text-white font-medium"
+            >
+              Send Verification OTP
+            </button>
+          ) : (
+            <form
+              onSubmit={verifyOtp}
+              className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
+            >
+              <h1 className="text-white text-2xl font-semibold text-center mb-4">
+                Verify Email
+              </h1>
+              <p className="text-center mb-6 text-indigo-300">
+                Enter the 6-digit code sent to your email ID.
+              </p>
+              <div className="flex justify-between mb-8" onPaste={handlePaste}>
+                {Array(6)
+                  .fill("")
+                  .map((_, index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      maxLength="1"
+                      className={inputClass(index)}
+                      ref={(el) => (inputRefs.current[index] = el)}
+                      onInput={(e) => handleInput(e, index)}
+                      onKeyDown={(e) => handleKeyDown(e, index)}
+                    />
+                  ))}
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-900 text-white font-medium"
+              >
+                Verify OTP
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

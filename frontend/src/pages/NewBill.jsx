@@ -1,41 +1,337 @@
+// import React, { useContext, useState, useEffect } from "react";
+// import { AppContext } from "../context/AppContext";
+// import { useNavigate } from "react-router-dom";
+// import { toast, ToastContainer } from "react-toastify";
+// import axios from "axios";
+// import { FiPlus, FiTrash2 } from "react-icons/fi";
+
+// const NewBill = () => {
+//   const navigate = useNavigate();
+//   const { currencySymbol, userData } = useContext(AppContext);
+
+//   const [name, setName] = useState("");
+//   const [date, setDate] = useState("");
+//   const [customerAddress, setCustomerAddress] = useState("");
+
+//   const [total, setTotal] = useState(0);
+
+//   const [billItems, setBillItems] = useState([
+//     {
+//       name: "",
+//       quantity: 1,
+//       rate: 0,
+//       amount: 0,
+//       subCategory: "",
+//       searchQuery: "",
+//     },
+//   ]);
+
+//   /* ---------------- TOTAL ---------------- */
+//   useEffect(() => {
+//     const sum = billItems.reduce((acc, item) => acc + item.amount, 0);
+//     setTotal(sum);
+//   }, [billItems]);
+
+//   const handleAddItem = () => {
+//     setBillItems([
+//       ...billItems,
+//       {
+//         name: "",
+//         quantity: 1,
+//         rate: 0,
+//         amount: 0,
+//         subCategory: "",
+//         searchQuery: "",
+//       },
+//     ]);
+//   };
+
+//   const handleRemoveItem = (index) => {
+//     setBillItems(billItems.filter((_, i) => i !== index));
+//   };
+
+//   const handleInputChange = (index, e) => {
+//     const { name, value } = e.target;
+//     const updated = [...billItems];
+
+//     updated[index][name] = name === "quantity" ? Number(value) : value;
+//     updated[index].amount = updated[index].quantity * updated[index].rate;
+
+//     setBillItems(updated);
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+
+//     if (!name || billItems.length === 0) {
+//       toast.error("Please fill required fields");
+//       return;
+//     }
+
+//     try {
+//       await axios.post("/api/bill/create", {
+//         name,
+//         address: customerAddress,
+//         date: new Date(date),
+//         items: billItems,
+//         total,
+//       });
+
+//       toast.success("Bill generated successfully");
+//       navigate("/all-bills");
+//     } catch {
+//       toast.error("Failed to generate bill");
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-[#0b0f1a] pt-24 pb-16">
+//       <div className="max-w-7xl mx-auto px-6">
+//         {/* ================= HEADER ================= */}
+//         <div className="mb-10">
+//           <h1 className="text-2xl font-semibold text-white tracking-tight">
+//             New Bill
+//           </h1>
+//           <p className="text-sm text-gray-400 mt-1">Create a new invoice</p>
+//         </div>
+
+//         <form onSubmit={handleSubmit} className="space-y-10">
+//           {/* ================= BUSINESS DETAILS ================= */}
+//           <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
+//             <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider mb-4">
+//               Business Details
+//             </h2>
+
+//             <p className="text-white font-semibold">
+//               {userData?.companyName || "Company Name"}
+//             </p>
+
+//             <p className="text-sm text-gray-400 mt-1">
+//               Prop. {userData?.name || "Owner Name"}
+//             </p>
+
+//             <p className="text-sm text-gray-400 mt-1">
+//               {userData?.address || "Business Address"}
+//             </p>
+
+//             <p className="text-sm text-gray-400 mt-1">
+//               Mobile: {userData?.phoneNumber || "Phone Number"}
+//             </p>
+//           </div>
+
+//           {/* ================= CUSTOMER DETAILS ================= */}
+//           <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
+//             <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider mb-4">
+//               Customer Details
+//             </h2>
+
+//             <div className="grid md:grid-cols-2 gap-6">
+//               <div>
+//                 <label className="block text-sm text-gray-400 mb-2">
+//                   Customer Name *
+//                 </label>
+//                 <input
+//                   value={name}
+//                   onChange={(e) => setName(e.target.value)}
+//                   className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+//                   placeholder="Customer name"
+//                 />
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm text-gray-400 mb-2">
+//                   Bill Date
+//                 </label>
+//                 <input
+//                   type="date"
+//                   value={date}
+//                   onChange={(e) => setDate(e.target.value)}
+//                   className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+//                 />
+//               </div>
+
+//               <div className="md:col-span-2">
+//                 <label className="block text-sm text-gray-400 mb-2">
+//                   Address
+//                 </label>
+//                 <input
+//                   value={customerAddress}
+//                   onChange={(e) => setCustomerAddress(e.target.value)}
+//                   className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+//                   placeholder="Customer address (auto-filled)"
+//                 />
+//                 <p className="mt-1 text-xs text-gray-500">
+//                   Auto-filled from business profile. Editable.
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* ================= LINE ITEMS ================= */}
+//           <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
+//             <div className="flex justify-between mb-4">
+//               <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider">
+//                 Line Items
+//               </h2>
+//               <button
+//                 type="button"
+//                 onClick={handleAddItem}
+//                 className="flex items-center gap-2 bg-cyan-500 px-4 py-2 rounded-lg text-black font-semibold hover:bg-cyan-400"
+//               >
+//                 <FiPlus /> Add Item
+//               </button>
+//             </div>
+
+//             <table className="w-full text-sm">
+//               <thead className="border-b border-white/10 text-gray-400">
+//                 <tr>
+//                   <th className="text-left py-2">Item</th>
+//                   <th className="text-right py-2">Qty</th>
+//                   <th className="text-right py-2">Rate</th>
+//                   <th className="text-right py-2">Amount</th>
+//                   <th />
+//                 </tr>
+//               </thead>
+
+//               <tbody>
+//                 {billItems.map((item, index) => (
+//                   <tr key={index} className="border-b border-white/5">
+//                     <td className="py-3">
+//                       <input
+//                         name="name"
+//                         value={item.name}
+//                         onChange={(e) => handleInputChange(index, e)}
+//                         className="w-full bg-[#0b0f1a] border border-white/10 rounded-md px-3 py-2 text-white"
+//                         placeholder="Item name"
+//                       />
+//                     </td>
+
+//                     <td className="py-3 text-right">
+//                       <input
+//                         type="number"
+//                         min="1"
+//                         name="quantity"
+//                         value={item.quantity}
+//                         onChange={(e) => handleInputChange(index, e)}
+//                         className="w-20 bg-[#0b0f1a] border border-white/10 rounded-md px-2 py-2 text-right text-white"
+//                       />
+//                     </td>
+
+//                     <td className="py-3 text-right text-gray-300">
+//                       {currencySymbol}
+//                       {item.rate.toFixed(2)}
+//                     </td>
+
+//                     <td className="py-3 text-right text-white font-medium">
+//                       {currencySymbol}
+//                       {item.amount.toFixed(2)}
+//                     </td>
+
+//                     <td className="py-3 text-right">
+//                       <button
+//                         type="button"
+//                         onClick={() => handleRemoveItem(index)}
+//                         className="text-gray-400 hover:text-red-400"
+//                       >
+//                         <FiTrash2 />
+//                       </button>
+//                     </td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+
+//           {/* ================= TOTAL ================= */}
+//           <div className="flex justify-between items-center">
+//             <div className="text-lg font-semibold text-white">
+//               Total:
+//               <span className="ml-2 text-cyan-400">
+//                 {currencySymbol}
+//                 {total.toFixed(2)}
+//               </span>
+//             </div>
+
+//             <button
+//               type="submit"
+//               className="bg-cyan-500 px-8 py-3 rounded-lg font-semibold text-black hover:bg-cyan-400"
+//             >
+//               Generate Bill
+//             </button>
+//           </div>
+//         </form>
+//       </div>
+
+//       <ToastContainer position="bottom-right" />
+//     </div>
+//   );
+// };
+
+// export default NewBill;
+
 import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
+import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { FiPlus, FiTrash2, FiChevronDown } from "react-icons/fi";
 
 const NewBill = () => {
+  const navigate = useNavigate();
+
   const {
     backendurl,
-    userData,
     token,
+    userData,
     currencySymbol,
     items,
     downloadBillPDF,
   } = useContext(AppContext);
 
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
+  /* ================= CUSTOMER ================= */
+  const [customerName, setCustomerName] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
   const [date, setDate] = useState("");
+
+  /* ================= BILL ITEMS ================= */
   const [billItems, setBillItems] = useState([
     {
       name: "",
       quantity: 1,
-      rate: "",
+      rate: 0,
       amount: 0,
       subCategory: "",
       searchQuery: "",
     },
   ]);
 
+  /* ================= AUTO DATE ================= */
+  useEffect(() => {
+    setDate(new Date().toISOString().split("T")[0]);
+  }, []);
+
+  /* ================= TOTAL ================= */
+  const total = billItems.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
+    0,
+  );
+
+  /* ================= HELPERS ================= */
+  const filteredItems = (query) => {
+    if (!query) return [];
+    return items.filter((item) =>
+      item.name.toLowerCase().includes(query.toLowerCase()),
+    );
+  };
+
+  /* ================= HANDLERS ================= */
   const handleAddItem = () => {
     setBillItems([
       ...billItems,
       {
         name: "",
         quantity: 1,
-        rate: "",
+        rate: 0,
         amount: 0,
         subCategory: "",
         searchQuery: "",
@@ -44,305 +340,247 @@ const NewBill = () => {
   };
 
   const handleRemoveItem = (index) => {
-    const updatedItems = billItems.filter((_, i) => i !== index);
-    setBillItems(updatedItems);
+    setBillItems(billItems.filter((_, i) => i !== index));
   };
 
-  const handleInputChange = (index, event) => {
-    const { name, value } = event.target;
-    const updatedItems = [...billItems];
-    updatedItems[index] = { ...updatedItems[index], [name]: value };
+  const handleInputChange = (index, e) => {
+    const { name, value } = e.target;
+    const updated = [...billItems];
 
-    if (name === "name" && value) {
-      const selectedItem = items.find((item) => item.name === value);
-      if (selectedItem) {
-        const ratePerUnit =
-          selectedItem.subCategory === "dozen"
-            ? selectedItem.price / 12
-            : selectedItem.price;
+    updated[index][name] = name === "quantity" ? Number(value) : value;
 
-        updatedItems[index].rate = ratePerUnit.toFixed(2);
-        updatedItems[index].subCategory = selectedItem.subCategory;
-        updatedItems[index].amount = ratePerUnit * updatedItems[index].quantity;
+    /* ---------- SEARCH + AUTO RATE ---------- */
+    if (name === "name") {
+      updated[index].searchQuery = value;
+
+      const matched = items.find(
+        (i) => i.name.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (matched) {
+        const rate =
+          matched.subCategory?.toLowerCase() === "dozen"
+            ? matched.price / 12
+            : matched.price;
+
+        updated[index].rate = Number(rate.toFixed(2));
+        updated[index].subCategory = matched.subCategory || "";
+        updated[index].amount = rate * updated[index].quantity;
+        updated[index].searchQuery = "";
       }
     }
 
-    if (name === "rate" || name === "quantity") {
-      const currentRate = updatedItems[index].rate || 0;
-      updatedItems[index].amount = currentRate * updatedItems[index].quantity;
+    /* ---------- RECALCULATE ---------- */
+    if (name === "quantity" || name === "rate") {
+      updated[index].amount =
+        Number(updated[index].quantity) * Number(updated[index].rate || 0);
     }
 
-    setBillItems(updatedItems);
+    setBillItems(updated);
   };
 
-  const filteredItems = (query) =>
-    items.filter((item) =>
-      item.name.toLowerCase().includes(query.toLowerCase())
-    );
+  /* ================= SUBMIT ================= */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const total = billItems.reduce(
-    (sum, item) => sum + parseFloat(item.amount || 0),
-    0
-  );
-
-  useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    setDate(today);
-  }, []);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const billData = {
-      name,
-      address,
-      date,
-      items: billItems,
-      total,
-    };
+    if (!customerName || billItems.length === 0) {
+      toast.error("Please fill required fields");
+      return;
+    }
 
     try {
-      const response = await axios.post(
-        backendurl + "/api/user/new-bill",
-        billData,
+      const { data } = await axios.post(
+        `${backendurl}/api/user/new-bill`,
         {
-          headers: { token },
-          params: { userId: userData.userId },
-        }
+          name: customerName,
+          address: customerAddress,
+          date,
+          items: billItems,
+          total,
+        },
+        { headers: { token } },
       );
-      toast.success("Bill created successfully!");
 
-      const billId = response.data.billId;
-      if (billId) {
-        downloadBillPDF(billId);
-      } else {
-        console.error("Bill ID is missing from the response.");
+      toast.success("Bill created successfully");
+
+      if (data.billId) {
+        downloadBillPDF(data.billId);
       }
 
-      setName("");
-      setAddress("");
-      setDate(new Date().toISOString().split("T")[0]);
-      setBillItems([
-        {
-          name: "",
-          quantity: 1,
-          rate: "",
-          amount: 0,
-          subCategory: "",
-          searchQuery: "",
-        },
-      ]);
-    } catch (error) {
-      toast.error("Error creating bill. Please try again!");
+      navigate("/all-bills");
+    } catch (err) {
+      toast.error("Failed to generate bill");
     }
   };
-  return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        {/* Company Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 text-center">
-          <h1 className="text-3xl font-bold mb-2">
-            DAS JEWELLERY BOX & BAG SUPPLY
-          </h1>
-          <p className="text-sm opacity-90">
-            Prop. - Mantu Das | Khalore, Bagnan, Howrah
-          </p>
-          <p className="text-sm mt-1 opacity-90">
-            Mobile: 9775166264 / 9679490960
-          </p>
-        </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
-          {/* Customer Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Customer Name
-              </label>
-              <input
-                type="text"
-                placeholder="Enter customer name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Date
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Address
-              </label>
-              <input
-                type="text"
-                placeholder="Enter customer address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+  return (
+    <div className="min-h-screen bg-[#0b0f1a] pt-24 pb-16">
+      <div className="max-w-7xl mx-auto px-6">
+        <h1 className="text-2xl font-semibold text-white mb-6">New Bill</h1>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* ================= BUSINESS ================= */}
+          <div className="bg-[#0f1424] border border-white/10 rounded-xl p-6">
+            <p className="text-white font-semibold">{userData?.companyName}</p>
+            <p className="text-gray-400 text-sm">Prop. {userData?.name}</p>
+            <p className="text-gray-400 text-sm">{userData?.address}</p>
+            <p className="text-gray-400 text-sm">
+              Mobile: {userData?.phoneNumber}
+            </p>
           </div>
 
-          {/* Items Table */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Items</h3>
+          {/* ================= CUSTOMER ================= */}
+          <div className="bg-[#0f1424] border border-white/10 rounded-xl p-6 grid md:grid-cols-2 gap-6">
+            <input
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Customer Name"
+              className="bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white"
+            />
+
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white"
+            />
+
+            <input
+              value={customerAddress}
+              onChange={(e) => setCustomerAddress(e.target.value)}
+              placeholder="Customer Address"
+              className="bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white md:col-span-2"
+            />
+          </div>
+
+          {/* ================= ITEMS ================= */}
+          <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
+            <div className="flex justify-between mb-4">
+              <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider">
+                 Items
+              </h2>
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 bg-cyan-500 px-4 py-2 rounded-lg text-black font-semibold hover:bg-cyan-400"
               >
-                <FiPlus className="text-lg" />
-                Add Item
+                <FiPlus /> Add Item
               </button>
             </div>
 
-            {billItems.map((item, index) => (
-              <div
-                key={index}
-                className="border rounded-lg p-4 mb-4 relative group"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                  {/* Item Name */}
-                  <div className="md:col-span-2 relative">
-                    <label className="block text-sm text-gray-600 mb-1">
-                      Item Name
-                    </label>
-                    <div className="relative">
+            <table className="w-full text-sm">
+              <thead className="text-gray-400">
+                <tr>
+                  <th className="text-left">Item</th>
+                  <th className="text-right">Qty</th>
+                  <th className="text-right">Rate</th>
+                  <th className="text-right">Amount</th>
+                  <th />
+                </tr>
+              </thead>
+
+              <tbody>
+                {billItems.map((item, index) => (
+                  <tr key={index} className="border-t border-white/5">
+                    {/* ITEM SEARCH */}
+                    <td className="relative py-3">
                       <input
-                        type="text"
-                        placeholder="Search item..."
-                        value={item.name}
                         name="name"
-                        onChange={(e) => {
-                          handleInputChange(index, e);
-                          const updatedItems = [...billItems];
-                          updatedItems[index].searchQuery = e.target.value;
-                          setBillItems(updatedItems);
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-8 focus:ring-2 focus:ring-blue-500"
+                        value={item.name}
+                        onChange={(e) => handleInputChange(index, e)}
+                        placeholder="Search item"
+                        className="w-full bg-[#0b0f1a] border border-white/10 px-3 py-2 rounded-md text-white"
                       />
-                      <FiChevronDown className="absolute right-3 top-3 text-gray-400" />
 
-                      {item.searchQuery && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg">
-                          {filteredItems(item.searchQuery).map(
-                            (filteredItem) => (
+                      {item.searchQuery &&
+                        filteredItems(item.searchQuery).length > 0 && (
+                          <div className="absolute z-20 w-full mt-1 bg-[#0f1424] border border-white/10 rounded-md shadow-lg">
+                            {filteredItems(item.searchQuery).map((it) => (
                               <div
-                                key={filteredItem.id}
+                                key={it._id}
                                 onClick={() => {
-                                  const ratePerUnit =
-                                    filteredItem.subCategory === "dozen"
-                                      ? filteredItem.price / 12
-                                      : filteredItem.price;
+                                  const rate =
+                                    it.subCategory === "dozen"
+                                      ? it.price / 12
+                                      : it.price;
 
-                                  const updatedItems = [...billItems];
-                                  updatedItems[index].name = filteredItem.name;
-                                  updatedItems[index].rate =
-                                    ratePerUnit.toFixed(2);
-                                  updatedItems[index].amount =
-                                    ratePerUnit * updatedItems[index].quantity;
-                                  updatedItems[index].subCategory =
-                                    filteredItem.subCategory;
-                                  updatedItems[index].searchQuery = "";
-                                  setBillItems(updatedItems);
+                                  const updated = [...billItems];
+                                  updated[index] = {
+                                    ...updated[index],
+                                    name: it.name,
+                                    rate: Number(rate.toFixed(2)),
+                                    amount: rate * updated[index].quantity,
+                                    subCategory: it.subCategory || "",
+                                    searchQuery: "",
+                                  };
+                                  setBillItems(updated);
                                 }}
-                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm"
+                                className="px-3 py-2 text-gray-300 hover:bg-white/10 cursor-pointer"
                               >
-                                {filteredItem.name}
+                                {it.name}
                               </div>
-                            )
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                            ))}
+                          </div>
+                        )}
+                    </td>
 
-                  {/* Quantity */}
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">
-                      Quantity
-                    </label>
-                    <input
-                      type="number"
-                      name="quantity"
-                      value={item.quantity}
-                      onChange={(e) => handleInputChange(index, e)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      min="1"
-                    />
-                  </div>
+                    <td className="text-right">
+                      <input
+                        type="number"
+                        min="1"
+                        name="quantity"
+                        value={item.quantity}
+                        onChange={(e) => handleInputChange(index, e)}
+                        className="w-20 bg-[#0b0f1a] border border-white/10 px-2 py-2 rounded-md text-right text-white"
+                      />
+                    </td>
 
-                  {/* Rate */}
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">
-                      Rate
-                    </label>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{item.rate}</span>
-                      {item.subCategory && (
-                        <span className="text-sm text-gray-500">
-                          /{item.subCategory}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                    <td className="text-right text-gray-300">
+                      {currencySymbol}
+                      {item.rate.toFixed(2)}
+                    </td>
 
-                  {/* Amount */}
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">
-                      Amount
-                    </label>
-                    <div className="font-medium">
+                    <td className="text-right text-white">
                       {currencySymbol}
                       {item.amount.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
+                    </td>
 
-                <button
-                  type="button"
-                  onClick={() => handleRemoveItem(index)}
-                  className="absolute top-2 right-2 p-2 text-gray-400 hover:text-red-600 transition-colors"
-                >
-                  <FiTrash2 className="text-lg" />
-                </button>
-              </div>
-            ))}
+                    <td className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(index)}
+                        className="text-gray-400 hover:text-red-400"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          {/* Total Section */}
-          <div className="bg-gray-50 p-4 rounded-lg mb-8">
-            <div className="flex justify-end items-center gap-4">
-              <span className="text-lg font-semibold text-gray-700">
-                Total:
-              </span>
-              <span className="text-2xl font-bold text-blue-600">
+          {/* ================= TOTAL ================= */}
+          <div className="flex justify-between items-center">
+            <p className="text-xl text-white">
+              Total:{" "}
+              <span className="text-cyan-400">
                 {currencySymbol}
                 {total.toFixed(2)}
               </span>
-            </div>
-          </div>
+            </p>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-          >
-            Generate Bill
-          </button>
+            <button
+              type="submit"
+              className="bg-cyan-500 px-8 py-3 rounded-lg text-black font-semibold"
+            >
+              Generate Bill
+            </button>
+          </div>
         </form>
       </div>
-      <ToastContainer position="bottom-right" autoClose={3000} />
+
+      <ToastContainer position="bottom-right" />
     </div>
   );
 };

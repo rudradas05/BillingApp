@@ -8,6 +8,7 @@ import {
   RiAddBoxLine,
   RiStackLine,
   RiLogoutCircleRLine,
+  RiUserLine,
 } from "react-icons/ri";
 
 const Navbar = () => {
@@ -16,181 +17,172 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { name: "Home", path: "/", icon: <RiDashboardLine className="w-5 h-5" /> },
-    {
-      name: "All Bills",
-      path: "/all-bills",
-      icon: <RiBillLine className="w-5 h-5" />,
-    },
-    {
-      name: "New Bill",
-      path: "/billing",
-      icon: <RiAddBoxLine className="w-5 h-5" />,
-    },
-    {
-      name: "Add Items",
-      path: "/add-items",
-      icon: <RiAddBoxLine className="w-5 h-5" />,
-    },
-    {
-      name: "Inventory",
-      path: "/all-items",
-      icon: <RiStackLine className="w-5 h-5" />,
-    },
+    { name: "Dashboard", path: "/", icon: <RiDashboardLine className="w-5 h-5" /> },
+    { name: "Bills", path: "/all-bills", icon: <RiBillLine className="w-5 h-5" /> },
+    { name: "New Bill", path: "/billing", icon: <RiAddBoxLine className="w-5 h-5" /> },
+    { name: "Items", path: "/add-items", icon: <RiAddBoxLine className="w-5 h-5" /> },
+    { name: "Inventory", path: "/all-items", icon: <RiStackLine className="w-5 h-5" /> },
   ];
 
   const logout = () => {
-    try {
-      setToken("");
-      localStorage.removeItem("token");
-      setIsLoggedin(false);
-      navigate("/");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      setIsMenuOpen(false);
-    }
+    setToken("");
+    localStorage.removeItem("token");
+    setIsLoggedin(false);
+    setIsMenuOpen(false);
+    navigate("/");
   };
 
+  const linkBase =
+    "relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors";
+
   return (
-    <nav className="flex  bg-gray-900 border-b border-gray-800 z-50  w-full">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+    <nav className="fixed top-0 left-0 w-full z-50 bg-[#0b0f1a] border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex h-16 items-center justify-between">
+          {/* Brand */}
           <div
             onClick={() => navigate("/")}
-            className="flex items-center space-x-2 cursor-pointer group"
-            role="button"
-            aria-label="Navigate to Home"
+            className="cursor-pointer select-none"
           >
-            <span className="text-2xl font-bold text-indigo-400">
-              BillMaster
+            <span className="text-lg font-semibold tracking-tight text-white">
+              Invoice<span className="text-cyan-400">Master</span>
             </span>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            {navItems.map(({ name, path, icon }) => (
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-2">
+            {navItems.map((item) => (
               <NavLink
-                key={path}
-                to={path}
+                key={item.name}
+                to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-2 px-4 py-2 rounded-md transition-colors duration-200
-                  ${
+                  `${linkBase} ${
                     isActive
-                      ? "bg-indigo-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                      ? "text-white"
+                      : "text-gray-400 hover:text-white"
                   }`
                 }
               >
-                {icon}
-                <span>{name}</span>
+                {({ isActive }) => (
+                  <>
+                    {item.icon}
+                    {item.name}
+                    {isActive && (
+                      <span className="absolute left-3 right-3 -bottom-2 h-[2px] bg-cyan-400 rounded-full" />
+                    )}
+                  </>
+                )}
               </NavLink>
             ))}
-          </div>
 
-          {/* Auth Section */}
-          <div className="hidden md:flex items-center space-x-4">
+            <div className="mx-2 h-5 w-px bg-white/10" />
+
+            {/* WHEN LOGGED IN */}
             {token ? (
-              <button
-                onClick={logout}
-                className="flex items-center space-x-2 bg-indigo-600 px-6 py-2 rounded-md 
-                         hover:bg-indigo-700 transition-colors text-white"
-              >
-                <RiLogoutCircleRLine className="text-lg" />
-                <span>Log Out</span>
-              </button>
+              <>
+                <NavLink
+                  to="/profile"
+                  className={({ isActive }) =>
+                    `${linkBase} ${
+                      isActive
+                        ? "text-white"
+                        : "text-gray-400 hover:text-white"
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <RiUserLine className="w-5 h-5" />
+                      Profile
+                      {isActive && (
+                        <span className="absolute left-3 right-3 -bottom-2 h-[2px] bg-cyan-400 rounded-full" />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+
+                <button
+                  onClick={logout}
+                  className="ml-2 flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-400 hover:text-red-400 transition"
+                >
+                  <RiLogoutCircleRLine className="w-5 h-5" />
+                  Logout
+                </button>
+              </>
             ) : (
+              /* WHEN NOT LOGGED IN */
               <button
                 onClick={() => navigate("/login")}
-                className="bg-indigo-600 px-6 py-2 rounded-md 
-                         hover:bg-indigo-700 transition-colors text-white"
+                className="ml-2 rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-black hover:bg-cyan-400 transition"
               >
                 Get Started
               </button>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Toggle */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-md hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
-            aria-label="Toggle menu"
+            className="md:hidden text-gray-400 hover:text-white transition"
           >
-            {isMenuOpen ? (
-              <FiX className="w-6 h-6" />
-            ) : (
-              <FiMenu className="w-6 h-6" />
-            )}
+            {isMenuOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
           </button>
         </div>
-      </div>
 
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-gray-900">
-          <div className="flex flex-col h-full">
-            <div className="flex justify-between items-center p-6 border-b border-gray-800">
-              <span className="text-2xl font-bold text-indigo-400">
-                BillMaster
-              </span>
-              <button
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-2 rounded-xl bg-[#0f1424] border border-white/10 p-3 space-y-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.path}
                 onClick={() => setIsMenuOpen(false)}
-                className="p-2 rounded-md hover:bg-gray-800 text-gray-300 hover:text-white"
-                aria-label="Close menu"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition ${
+                    isActive
+                      ? "bg-white/10 text-white"
+                      : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  }`
+                }
               >
-                <FiX className="w-6 h-6" />
-              </button>
-            </div>
+                {item.icon}
+                {item.name}
+              </NavLink>
+            ))}
 
-            <div className="flex-1 flex flex-col p-4 space-y-2">
-              {navItems.map(({ name, path, icon }) => (
+            {token ? (
+              <>
                 <NavLink
-                  key={path}
-                  to={path}
+                  to="/profile"
                   onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-4 px-4 py-3 rounded-md
-                    ${
-                      isActive
-                        ? "bg-indigo-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                    }`
-                  }
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white"
                 >
-                  {icon}
-                  <span className="text-lg">{name}</span>
+                  <RiUserLine className="w-5 h-5" />
+                  Profile
                 </NavLink>
-              ))}
 
-              <div className="mt-4 p-4 border-t border-gray-800">
-                {token ? (
-                  <button
-                    onClick={logout}
-                    className="w-full flex items-center justify-center space-x-2 
-                             bg-indigo-600 px-6 py-3 rounded-md 
-                             hover:bg-indigo-700 transition-colors text-white"
-                  >
-                    <RiLogoutCircleRLine className="text-lg" />
-                    <span>Log Out</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      navigate("/login");
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full bg-indigo-600 px-6 py-3 rounded-md 
-                             hover:bg-indigo-700 transition-colors text-white"
-                  >
-                    Get Started
-                  </button>
-                )}
-              </div>
-            </div>
+                <button
+                  onClick={logout}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-red-400 transition"
+                >
+                  <RiLogoutCircleRLine className="w-5 h-5" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  navigate("/login");
+                }}
+                className="w-full mt-2 rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-black hover:bg-cyan-400 transition"
+              >
+                Get Started
+              </button>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </nav>
   );
 };

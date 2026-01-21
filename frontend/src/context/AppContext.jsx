@@ -17,6 +17,59 @@ const AppContextProvider = (props) => {
   const [isVerified, setIsVerified] = useState(false);
   const [items, setItems] = useState("");
   const [bills, setBills] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  // Category management
+  const getCategories = async () => {
+    try {
+      const { data } = await axios.get(backendurl + "/api/category/all", {
+        headers: { token },
+      });
+      if (data.success) {
+        setCategories(data.categories);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const addCategory = async (name) => {
+    try {
+      const { data } = await axios.post(
+        backendurl + "/api/category/add",
+        { name },
+        { headers: { token } }
+      );
+      if (data.success) {
+        toast.success("Category added");
+        getCategories();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const deleteCategory = async (categoryId) => {
+    try {
+      const { data } = await axios.post(
+        backendurl + "/api/category/delete",
+        { categoryId },
+        { headers: { token } }
+      );
+      if (data.success) {
+        toast.success("Category deleted");
+        getCategories();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   const loadUserData = async () => {
     try {
@@ -36,22 +89,20 @@ const AppContextProvider = (props) => {
   };
 
   const verification_status_user = async () => {
-    if (userData.isAccoutverified === true) {
+    if (userData && userData.IsAccountVerified === true) {
       setIsVerified(true);
+    } else {
+      setIsVerified(false);
     }
   };
 
   const getAllItems = async () => {
     try {
-      const { data } = await axios.post(
-        backendurl + "/api/user/all-items",
-        { userId: userData.userId },
-        {
-          headers: {
-            token,
-          },
-        }
-      );
+      const { data } = await axios.get(backendurl + "/api/user/all-items", {
+        headers: {
+          token,
+        },
+      });
       if (data.success) {
         setItems(data.items);
       } else {
@@ -107,8 +158,10 @@ const AppContextProvider = (props) => {
 
   useEffect(() => {
     if (token) {
+      loadUserData();
       getAllItems();
       getAllBills();
+      getCategories();
     }
   }, [token]);
 
@@ -139,6 +192,10 @@ const AppContextProvider = (props) => {
     bills,
     setBills,
     getAllBills,
+    categories,
+    getCategories,
+    addCategory,
+    deleteCategory,
   };
 
   return (

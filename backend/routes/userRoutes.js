@@ -13,6 +13,7 @@ import {
   resetPassword,
   sendResetOtp,
   sendVerifyOtp,
+  updateUserData,
   verifyEmail,
 } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
@@ -27,8 +28,9 @@ userRouter.get("/is-auth", authUser, isAuthenticated);
 userRouter.post("/send-reset-otp", sendResetOtp);
 userRouter.post("/reset-password", resetPassword);
 userRouter.get("/get-user-data", authUser, getUserData);
+userRouter.put("/update-user-data", authUser, updateUserData);
 userRouter.post("/add-items", authUser, addItems);
-userRouter.post("/all-items", authUser, getAllItems);
+userRouter.get("/all-items", authUser, getAllItems);
 userRouter.post("/remove-item", authUser, removeItems);
 userRouter.post("/new-bill", authUser, newBill);
 userRouter.get("/all-bill", authUser, getAllBill);

@@ -2,15 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import {
-  FiPackage,
-  FiDollarSign,
-  FiTag,
-  FiLayers,
-  FiPlus,
-  FiChevronDown,
-  FiLoader,
-} from "react-icons/fi";
+import { FiPackage, FiPlus, FiChevronDown, FiLoader } from "react-icons/fi";
 
 const AddItems = () => {
   const [name, setName] = useState("");
@@ -20,11 +12,29 @@ const AddItems = () => {
   const [subCategory, setSubCategory] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { backendurl, token, currencySymbol } = useContext(AppContext);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+
+  const { backendurl, token, categories, getCategories } =
+    useContext(AppContext);
+  const [newCategory, setNewCategory] = useState("");
+  const [addingCategory, setAddingCategory] = useState(false);
 
   useEffect(() => {
     setSubCategory("");
   }, [category]);
+
+  useEffect(() => {
+    getCategories();
+    // eslint-disable-next-line
+  }, []);
+
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategory.trim()) return;
+    await addCategory(newCategory.trim());
+    setNewCategory("");
+    setShowAddCategory(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,7 +70,7 @@ const AddItems = () => {
       const { data } = await axios.post(
         `${backendurl}/api/user/add-items`,
         formData,
-        { headers: { token } }
+        { headers: { token } },
       );
 
       if (data.success) {
@@ -75,188 +85,226 @@ const AddItems = () => {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "An error occurred while adding the item."
+          "An error occurred while adding the item.",
       );
     } finally {
       setIsSubmitting(false);
     }
   };
+  const addCategory = async () => {
+    if (!newCategory.trim()) {
+      toast.error("Category name required");
+      return;
+    }
+
+    try {
+      const { data } = await axios.post(
+        `${backendurl}/api/category/add`,
+        { name: newCategory },
+        { headers: { token } },
+      );
+
+      if (data.success) {
+        toast.success("Category added");
+        setNewCategory("");
+        setAddingCategory(false);
+        // refresh categories from context
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("refreshCategories"));
+        }
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add category");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/10">
-          <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-            <FiPackage className="inline-block mr-2 mb-1" />
-            Add New Product
-          </h2>
+    <div className="min-h-screen bg-[#0b0f1a] pt-24 pb-16">
+      <div className="max-w-3xl mx-auto px-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-white tracking-tight">
+            Add Item
+          </h1>
+          <p className="text-sm text-gray-400 mt-1">
+            Create a new product to be used in billing and inventory.
+          </p>
+        </div>
 
+        {/* Card */}
+        <div className="rounded-xl border border-white/10 bg-[#0f1424] p-8">
           <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {/* Name Field */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative">
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-400 mb-2"
-                  >
-                    Product Name
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <FiTag className="text-gray-400 text-lg" />
-                    <input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                      placeholder="Enter product name"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
+            {/* Basic Info */}
+            <div className="space-y-6">
+              <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider">
+                Basic Information
+              </h2>
 
-              {/* Price Field */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative">
-                  <label
-                    htmlFor="price"
-                    className="block text-sm font-medium text-gray-400 mb-2"
-                  >
-                    Price
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Product Name *
                   </label>
-                  <div className="flex items-center space-x-3">
-                    <FiDollarSign className="text-gray-400 text-lg" />
-                    <div className="relative w-full">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                        {currencySymbol}
-                      </span>
-                      <input
-                        id="price"
-                        type="number"
-                        step="0.01"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        className="w-full bg-gray-800/50 border border-white/10 rounded-lg pl-10 pr-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                        placeholder="0.00"
-                        required
-                      />
-                    </div>
-                  </div>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    placeholder="e.g. Gold Ring"
+                    required
+                  />
                 </div>
-              </div>
 
-              {/* Quantity Field */}
-              <div className="relative group sm:col-span-2">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative">
-                  <label
-                    htmlFor="quantity"
-                    className="block text-sm font-medium text-gray-400 mb-2"
-                  >
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Price *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-gray-400 mb-2">
                     Stock Quantity (optional)
                   </label>
-                  <div className="flex items-center space-x-3">
-                    <FiLayers className="text-gray-400 text-lg" />
-                    <input
-                      id="quantity"
-                      type="number"
-                      step="1"
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
-                      className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                      placeholder="Enter stock quantity"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    placeholder="Available quantity"
+                  />
                 </div>
               </div>
+            </div>
 
-              {/* Category Dropdown */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative">
-                  <label
-                    htmlFor="category"
-                    className="block text-sm font-medium text-gray-400 mb-2"
-                  >
-                    Category
+            {/* Classification */}
+            <div className="space-y-6 pt-6 border-t border-white/10">
+              <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider">
+                Classification
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Category *
                   </label>
-                  <div className="flex items-center space-x-3">
-                    <FiTag className="text-gray-400 text-lg" />
+                  <div className="flex gap-2">
                     <div className="relative w-full">
                       <select
-                        id="category"
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 appearance-none pr-10"
+                        className="w-full appearance-none rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
                         required
                       >
                         <option value="" disabled>
-                          Select Category
+                          Select category
                         </option>
-                        <option value="Valvate Box">Valvate Box</option>
-                        <option value="Plastic Box">Plastic Box</option>
-                        <option value="Bags">Bags</option>
+                        {categories?.map((cat) => (
+                          <option key={cat._id} value={cat.name}>
+                            {cat.name}
+                          </option>
+                        ))}
                       </select>
-                      <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Sub-Category Dropdown */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative">
-                  <label
-                    htmlFor="subCategory"
-                    className="block text-sm font-medium text-gray-400 mb-2"
-                  >
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCategory((v) => !v)}
+                      className="px-3 rounded-lg border border-white/10 text-sm text-gray-300 hover:border-cyan-400 hover:text-white transition"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {showAddCategory && (
+                    <div className="mt-3 rounded-lg border border-white/10 bg-[#0b0f1a] p-3">
+                      <p className="text-xs text-gray-400 mb-2">
+                        Add new category
+                      </p>
+
+                      <input
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                        placeholder="Category name"
+                        className="w-full rounded-md bg-[#0f1424] border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400"
+                      />
+
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={addCategory}
+                          className="flex-1 rounded-md bg-cyan-500 py-1.5 text-sm font-semibold text-black hover:bg-cyan-400 transition"
+                        >
+                          Add
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAddCategory(false);
+                            setNewCategory("");
+                          }}
+                          className="flex-1 rounded-md border border-white/10 py-1.5 text-sm text-gray-400 hover:text-white transition"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
                     Sub-Category (optional)
                   </label>
-                  <div className="flex items-center space-x-3">
-                    <FiTag className="text-gray-400 text-lg" />
-                    <div className="relative w-full">
-                      <select
-                        id="subCategory"
-                        value={subCategory}
-                        onChange={(e) => setSubCategory(e.target.value)}
-                        className="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 appearance-none pr-10"
-                      >
-                        <option value="" disabled>
-                          Select Sub-Category
-                        </option>
-                        <option value="Dozen">Dozen</option>
-                        <option value="Pieces">Pieces</option>
-                      </select>
-                      <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    </div>
+                  <div className="relative">
+                    <select
+                      value={subCategory}
+                      onChange={(e) => setSubCategory(e.target.value)}
+                      className="w-full appearance-none rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    >
+                      <option value="" disabled>
+                        Select sub-category
+                      </option>
+                      <option value="Dozen">Dozen</option>
+                      <option value="Pieces">Pieces</option>
+                    </select>
+                    <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 py-4 px-8 rounded-xl font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {isSubmitting ? (
-                <>
-                  <FiLoader className="animate-spin inline-block mr-2 mb-1" />
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <FiPlus className="inline-block mr-2 mb-1" />
-                  Add Product to Inventory
-                </>
-              )}
-            </button>
+            {/* Submit */}
+            <div className="pt-6 border-t border-white/10">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-cyan-500 py-3 text-sm font-semibold text-black hover:bg-cyan-400 transition disabled:opacity-60"
+              >
+                {isSubmitting ? (
+                  <>
+                    <FiLoader className="animate-spin" />
+                    Adding item...
+                  </>
+                ) : (
+                  <>
+                    <FiPlus />
+                    Add Item
+                  </>
+                )}
+              </button>
+            </div>
           </form>
         </div>
       </div>

@@ -2,7 +2,9 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { connectDB } from "./config/db.js";
+
 import userRouter from "./routes/userRoutes.js";
+import categoryRouter from "./routes/categoryRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -33,7 +35,9 @@ connectDB()
     process.exit(1);
   });
 
+
 app.use("/api/user", userRouter);
+app.use("/api/category", categoryRouter);
 
 app.get("/", (req, res) => {
   res.send("API is working!");
