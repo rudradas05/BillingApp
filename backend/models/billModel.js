@@ -4,6 +4,8 @@ const billSchema = new mongoose.Schema({
   userId: { type: String, required: true },
   name: { type: String, required: true },
   address: { type: String, default: "" },
+  phone: { type: String, default: "" },
+  email: { type: String, default: "" },
   items: [
     {
       name: { type: String, required: true },

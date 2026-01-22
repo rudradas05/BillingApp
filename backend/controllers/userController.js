@@ -398,7 +398,7 @@ const removeItems = async (req, res) => {
 
 const newBill = async (req, res) => {
   try {
-    const { name, address, items, total } = req.body;
+    const { name, address, phone, email, items, total } = req.body;
     const { userId } = req;
 
     if (!name || !Array.isArray(items) || items.length === 0 || !total) {
@@ -431,6 +431,8 @@ const newBill = async (req, res) => {
       invoiceNo,
       name,
       address: address || "",
+      phone: phone || "",
+      email: email || "",
       items,
       total,
       date: new Date(),
@@ -770,16 +772,23 @@ const generateBillPDF = async (req, res) => {
 
     // LEFT – Customer
     doc
-      .font("Helvetica-Bold")
-      .fontSize(11)
-      .text("BILL TO:", 40, infoTop);
-
-    doc
       .font("Helvetica")
-      .fontSize(11)
-      .text(bill.name, 40, infoTop + 18)
       .fontSize(10)
-      .text(bill.address || "N/A", 40, infoTop + 34, { width: 260 });
+      .text(`Name: ${bill.name}`, 40, infoTop, {
+        width: 260,
+      })
+      .text(
+        `Address: ${bill.address || "N/A"}`,
+        40,
+        infoTop + 18,
+        { width: 260 }
+      )
+      .text(`Mobile: ${bill.phone || ""}`, 40, infoTop + 34, {
+        width: 260,
+      })
+      .text(`Email: ${bill.email || ""}`, 40, infoTop + 50, {
+        width: 260,
+      });
 
     // RIGHT – Invoice details
     doc

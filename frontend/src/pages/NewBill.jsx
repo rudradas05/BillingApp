@@ -1,283 +1,13 @@
-// import React, { useContext, useState, useEffect } from "react";
-// import { AppContext } from "../context/AppContext";
-// import { useNavigate } from "react-router-dom";
-// import { toast, ToastContainer } from "react-toastify";
-// import axios from "axios";
-// import { FiPlus, FiTrash2 } from "react-icons/fi";
-
-// const NewBill = () => {
-//   const navigate = useNavigate();
-//   const { currencySymbol, userData } = useContext(AppContext);
-
-//   const [name, setName] = useState("");
-//   const [date, setDate] = useState("");
-//   const [customerAddress, setCustomerAddress] = useState("");
-
-//   const [total, setTotal] = useState(0);
-
-//   const [billItems, setBillItems] = useState([
-//     {
-//       name: "",
-//       quantity: 1,
-//       rate: 0,
-//       amount: 0,
-//       subCategory: "",
-//       searchQuery: "",
-//     },
-//   ]);
-
-//   /* ---------------- TOTAL ---------------- */
-//   useEffect(() => {
-//     const sum = billItems.reduce((acc, item) => acc + item.amount, 0);
-//     setTotal(sum);
-//   }, [billItems]);
-
-//   const handleAddItem = () => {
-//     setBillItems([
-//       ...billItems,
-//       {
-//         name: "",
-//         quantity: 1,
-//         rate: 0,
-//         amount: 0,
-//         subCategory: "",
-//         searchQuery: "",
-//       },
-//     ]);
-//   };
-
-//   const handleRemoveItem = (index) => {
-//     setBillItems(billItems.filter((_, i) => i !== index));
-//   };
-
-//   const handleInputChange = (index, e) => {
-//     const { name, value } = e.target;
-//     const updated = [...billItems];
-
-//     updated[index][name] = name === "quantity" ? Number(value) : value;
-//     updated[index].amount = updated[index].quantity * updated[index].rate;
-
-//     setBillItems(updated);
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     if (!name || billItems.length === 0) {
-//       toast.error("Please fill required fields");
-//       return;
-//     }
-
-//     try {
-//       await axios.post("/api/bill/create", {
-//         name,
-//         address: customerAddress,
-//         date: new Date(date),
-//         items: billItems,
-//         total,
-//       });
-
-//       toast.success("Bill generated successfully");
-//       navigate("/all-bills");
-//     } catch {
-//       toast.error("Failed to generate bill");
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-[#0b0f1a] pt-24 pb-16">
-//       <div className="max-w-7xl mx-auto px-6">
-//         {/* ================= HEADER ================= */}
-//         <div className="mb-10">
-//           <h1 className="text-2xl font-semibold text-white tracking-tight">
-//             New Bill
-//           </h1>
-//           <p className="text-sm text-gray-400 mt-1">Create a new invoice</p>
-//         </div>
-
-//         <form onSubmit={handleSubmit} className="space-y-10">
-//           {/* ================= BUSINESS DETAILS ================= */}
-//           <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
-//             <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider mb-4">
-//               Business Details
-//             </h2>
-
-//             <p className="text-white font-semibold">
-//               {userData?.companyName || "Company Name"}
-//             </p>
-
-//             <p className="text-sm text-gray-400 mt-1">
-//               Prop. {userData?.name || "Owner Name"}
-//             </p>
-
-//             <p className="text-sm text-gray-400 mt-1">
-//               {userData?.address || "Business Address"}
-//             </p>
-
-//             <p className="text-sm text-gray-400 mt-1">
-//               Mobile: {userData?.phoneNumber || "Phone Number"}
-//             </p>
-//           </div>
-
-//           {/* ================= CUSTOMER DETAILS ================= */}
-//           <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
-//             <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider mb-4">
-//               Customer Details
-//             </h2>
-
-//             <div className="grid md:grid-cols-2 gap-6">
-//               <div>
-//                 <label className="block text-sm text-gray-400 mb-2">
-//                   Customer Name *
-//                 </label>
-//                 <input
-//                   value={name}
-//                   onChange={(e) => setName(e.target.value)}
-//                   className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
-//                   placeholder="Customer name"
-//                 />
-//               </div>
-
-//               <div>
-//                 <label className="block text-sm text-gray-400 mb-2">
-//                   Bill Date
-//                 </label>
-//                 <input
-//                   type="date"
-//                   value={date}
-//                   onChange={(e) => setDate(e.target.value)}
-//                   className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
-//                 />
-//               </div>
-
-//               <div className="md:col-span-2">
-//                 <label className="block text-sm text-gray-400 mb-2">
-//                   Address
-//                 </label>
-//                 <input
-//                   value={customerAddress}
-//                   onChange={(e) => setCustomerAddress(e.target.value)}
-//                   className="w-full rounded-lg bg-[#0b0f1a] border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
-//                   placeholder="Customer address (auto-filled)"
-//                 />
-//                 <p className="mt-1 text-xs text-gray-500">
-//                   Auto-filled from business profile. Editable.
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* ================= LINE ITEMS ================= */}
-//           <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
-//             <div className="flex justify-between mb-4">
-//               <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider">
-//                 Line Items
-//               </h2>
-//               <button
-//                 type="button"
-//                 onClick={handleAddItem}
-//                 className="flex items-center gap-2 bg-cyan-500 px-4 py-2 rounded-lg text-black font-semibold hover:bg-cyan-400"
-//               >
-//                 <FiPlus /> Add Item
-//               </button>
-//             </div>
-
-//             <table className="w-full text-sm">
-//               <thead className="border-b border-white/10 text-gray-400">
-//                 <tr>
-//                   <th className="text-left py-2">Item</th>
-//                   <th className="text-right py-2">Qty</th>
-//                   <th className="text-right py-2">Rate</th>
-//                   <th className="text-right py-2">Amount</th>
-//                   <th />
-//                 </tr>
-//               </thead>
-
-//               <tbody>
-//                 {billItems.map((item, index) => (
-//                   <tr key={index} className="border-b border-white/5">
-//                     <td className="py-3">
-//                       <input
-//                         name="name"
-//                         value={item.name}
-//                         onChange={(e) => handleInputChange(index, e)}
-//                         className="w-full bg-[#0b0f1a] border border-white/10 rounded-md px-3 py-2 text-white"
-//                         placeholder="Item name"
-//                       />
-//                     </td>
-
-//                     <td className="py-3 text-right">
-//                       <input
-//                         type="number"
-//                         min="1"
-//                         name="quantity"
-//                         value={item.quantity}
-//                         onChange={(e) => handleInputChange(index, e)}
-//                         className="w-20 bg-[#0b0f1a] border border-white/10 rounded-md px-2 py-2 text-right text-white"
-//                       />
-//                     </td>
-
-//                     <td className="py-3 text-right text-gray-300">
-//                       {currencySymbol}
-//                       {item.rate.toFixed(2)}
-//                     </td>
-
-//                     <td className="py-3 text-right text-white font-medium">
-//                       {currencySymbol}
-//                       {item.amount.toFixed(2)}
-//                     </td>
-
-//                     <td className="py-3 text-right">
-//                       <button
-//                         type="button"
-//                         onClick={() => handleRemoveItem(index)}
-//                         className="text-gray-400 hover:text-red-400"
-//                       >
-//                         <FiTrash2 />
-//                       </button>
-//                     </td>
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
-
-//           {/* ================= TOTAL ================= */}
-//           <div className="flex justify-between items-center">
-//             <div className="text-lg font-semibold text-white">
-//               Total:
-//               <span className="ml-2 text-cyan-400">
-//                 {currencySymbol}
-//                 {total.toFixed(2)}
-//               </span>
-//             </div>
-
-//             <button
-//               type="submit"
-//               className="bg-cyan-500 px-8 py-3 rounded-lg font-semibold text-black hover:bg-cyan-400"
-//             >
-//               Generate Bill
-//             </button>
-//           </div>
-//         </form>
-//       </div>
-
-//       <ToastContainer position="bottom-right" />
-//     </div>
-//   );
-// };
-
-// export default NewBill;
-
 import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { FiPlus, FiTrash2, FiChevronDown } from "react-icons/fi";
 
 const NewBill = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     backendurl,
@@ -291,7 +21,54 @@ const NewBill = () => {
   /* ================= CUSTOMER ================= */
   const [customerName, setCustomerName] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerQuery, setCustomerQuery] = useState("");
+  const [customerResults, setCustomerResults] = useState([]);
+  const [showCustomerResults, setShowCustomerResults] = useState(false);
   const [date, setDate] = useState("");
+
+  useEffect(() => {
+    if (location.state?.customer) {
+      setCustomerName(location.state.customer.name);
+      setCustomerAddress(location.state.customer.address || "");
+      setCustomerPhone(location.state.customer.phone || "");
+      setCustomerEmail(location.state.customer.email || "");
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    const searchCustomers = async () => {
+      if (customerQuery.trim() === "") {
+        setCustomerResults([]);
+        setShowCustomerResults(false);
+        return;
+      }
+      try {
+        const { data } = await axios.get(
+          `${backendurl}/api/customer/search?q=${customerQuery}`,
+          { headers: { token } },
+        );
+        setCustomerResults(data.customers);
+        setShowCustomerResults(true);
+      } catch (error) {
+        console.error("Error searching customers:", error);
+        toast.error("Failed to search customers");
+      }
+    };
+    const debounceTimeout = setTimeout(searchCustomers, 300);
+    return () => clearTimeout(debounceTimeout);
+  }, [customerQuery, backendurl, token]);
+
+  const handleCustomerSelect = (customer) => {
+    setCustomerName(customer.name);
+    setCustomerAddress(customer.address || "");
+    setCustomerPhone(customer.phone || "");
+    setCustomerEmail(customer.email || "");
+    setCustomerQuery("");
+    setCustomerResults([]);
+    setShowCustomerResults(false);
+  };
 
   /* ================= BILL ITEMS ================= */
   const [billItems, setBillItems] = useState([
@@ -394,6 +171,8 @@ const NewBill = () => {
         {
           name: customerName,
           address: customerAddress,
+          phone: customerPhone,
+          email: customerEmail,
           date,
           items: billItems,
           total,
@@ -431,33 +210,71 @@ const NewBill = () => {
 
           {/* ================= CUSTOMER ================= */}
           <div className="bg-[#0f1424] border border-white/10 rounded-xl p-6 grid md:grid-cols-2 gap-6">
-            <input
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Customer Name"
-              className="bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white"
-            />
-
+            <div className="relative">
+              <input
+                value={customerName}
+                onChange={(e) => {
+                  setCustomerName(e.target.value);
+                  setCustomerQuery(e.target.value);
+                }}
+                placeholder="Customer Name"
+                className="w-full bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white"
+              />
+              {showCustomerResults && customerResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-[#0f1424] border border-white/10 rounded-md shadow-lg">
+                  {customerResults.map((customer) => (
+                    <div
+                      key={customer._id}
+                      onClick={() => handleCustomerSelect(customer)}
+                      className="px-4 py-2 text-white cursor-pointer hover:bg-white/10"
+                    >
+                      {customer.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white"
             />
-
             <input
               value={customerAddress}
               onChange={(e) => setCustomerAddress(e.target.value)}
               placeholder="Customer Address"
               className="bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white md:col-span-2"
             />
+            <input
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+            
+              placeholder="Customer Phone"
+              className="bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white"
+            />
+            <input
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+            
+              placeholder="Customer Email"
+              className="bg-[#0b0f1a] border border-white/10 px-4 py-3 rounded-lg text-white"
+            />
+            <div className="md:col-span-2">
+              <Link
+                to="/add-customer"
+                className="text-cyan-400 hover:text-cyan-300"
+              >
+                + Add New Customer
+              </Link>
+            </div>
           </div>
 
           {/* ================= ITEMS ================= */}
           <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
             <div className="flex justify-between mb-4">
               <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider">
-                 Items
+                Items
               </h2>
               <button
                 type="button"

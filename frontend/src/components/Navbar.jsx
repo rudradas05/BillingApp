@@ -9,6 +9,7 @@ import {
   RiStackLine,
   RiLogoutCircleRLine,
   RiUserLine,
+  RiTeamLine,
 } from "react-icons/ri";
 
 const Navbar = () => {
@@ -22,6 +23,7 @@ const Navbar = () => {
     { name: "New Bill", path: "/billing", icon: <RiAddBoxLine className="w-5 h-5" /> },
     { name: "Items", path: "/add-items", icon: <RiAddBoxLine className="w-5 h-5" /> },
     { name: "Inventory", path: "/all-items", icon: <RiStackLine className="w-5 h-5" /> },
+    { name: "Customers", path: "/beneficiary-customer", icon: <RiTeamLine className="w-5 h-5" /> },
   ];
 
   const logout = () => {
