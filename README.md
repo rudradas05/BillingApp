@@ -70,7 +70,7 @@ This is a full-stack web application for managing billing, customers, and produc
 
     ```env
     CORS_ALLOWED_ORIGINS=
-    PORT=5000
+    PORT=4000
     MONGO_URI=your_mongodb_connection_string
     JWT_SECRET=your_jwt_secret
     SENDER_EMAIL=Resend no-reply mail
