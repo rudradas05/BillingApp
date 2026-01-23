@@ -18,7 +18,7 @@ const NewBill = () => {
     downloadBillPDF,
   } = useContext(AppContext);
 
-  /* ================= CUSTOMER ================= */
+  
   const [customerName, setCustomerName] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -70,7 +70,7 @@ const NewBill = () => {
     setShowCustomerResults(false);
   };
 
-  /* ================= BILL ITEMS ================= */
+
   const [billItems, setBillItems] = useState([
     {
       name: "",
@@ -82,18 +82,18 @@ const NewBill = () => {
     },
   ]);
 
-  /* ================= AUTO DATE ================= */
+  
   useEffect(() => {
     setDate(new Date().toISOString().split("T")[0]);
   }, []);
 
-  /* ================= TOTAL ================= */
+  
   const total = billItems.reduce(
     (sum, item) => sum + Number(item.amount || 0),
     0,
   );
 
-  /* ================= HELPERS ================= */
+  
   const filteredItems = (query) => {
     if (!query) return [];
     return items.filter((item) =>
@@ -101,7 +101,7 @@ const NewBill = () => {
     );
   };
 
-  /* ================= HANDLERS ================= */
+ 
   const handleAddItem = () => {
     setBillItems([
       ...billItems,
@@ -126,7 +126,7 @@ const NewBill = () => {
 
     updated[index][name] = name === "quantity" ? Number(value) : value;
 
-    /* ---------- SEARCH + AUTO RATE ---------- */
+    
     if (name === "name") {
       updated[index].searchQuery = value;
 
@@ -147,7 +147,7 @@ const NewBill = () => {
       }
     }
 
-    /* ---------- RECALCULATE ---------- */
+    
     if (name === "quantity" || name === "rate") {
       updated[index].amount =
         Number(updated[index].quantity) * Number(updated[index].rate || 0);
@@ -156,7 +156,7 @@ const NewBill = () => {
     setBillItems(updated);
   };
 
-  /* ================= SUBMIT ================= */
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -198,7 +198,7 @@ const NewBill = () => {
         <h1 className="text-2xl font-semibold text-white mb-6">New Bill</h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* ================= BUSINESS ================= */}
+     
           <div className="bg-[#0f1424] border border-white/10 rounded-xl p-6">
             <p className="text-white font-semibold">{userData?.companyName}</p>
             <p className="text-gray-400 text-sm">Prop. {userData?.name}</p>
@@ -208,7 +208,7 @@ const NewBill = () => {
             </p>
           </div>
 
-          {/* ================= CUSTOMER ================= */}
+         
           <div className="bg-[#0f1424] border border-white/10 rounded-xl p-6 grid md:grid-cols-2 gap-6">
             <div className="relative">
               <input
@@ -270,7 +270,7 @@ const NewBill = () => {
             </div>
           </div>
 
-          {/* ================= ITEMS ================= */}
+  
           <div className="rounded-xl border border-white/10 bg-[#0f1424] p-6">
             <div className="flex justify-between mb-4">
               <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wider">
@@ -377,7 +377,7 @@ const NewBill = () => {
             </table>
           </div>
 
-          {/* ================= TOTAL ================= */}
+     
           <div className="flex justify-between items-center">
             <p className="text-xl text-white">
               Total:{" "}

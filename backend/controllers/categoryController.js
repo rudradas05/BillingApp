@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import categoryModel from "../models/categoryModel.js";
 import productModel from "../models/productModels.js";
 
-// Add category
+
 const addCategory = async (req, res) => {
     try {
         const { userId } = req;

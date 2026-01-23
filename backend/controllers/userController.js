@@ -8,17 +8,22 @@ import billModel from "../models/billModel.js";
 
 import PDFDocument from "pdfkit";
 
-
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phoneNumber, companyName, address } = req.body;
+    const { name, email, password, phoneNumber, companyName, address } =
+      req.body;
 
     // Validate required fields
     if (!name || !email || !password) {
-      console.log("Missing required fields:", { name: !!name, email: !!email, password: !!password });
-      return res
-        .status(400)
-        .json({ success: false, message: "Name, email, and password are required" });
+      console.log("Missing required fields:", {
+        name: !!name,
+        email: !!email,
+        password: !!password,
+      });
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and password are required",
+      });
     }
 
     // Validate email format
@@ -301,11 +306,11 @@ const addItems = async (req, res) => {
     const { name, price, quantity, category, subCategory } = req.body;
     const { userId } = req;
 
-
     if (!name || price === undefined || !category) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Name, price, and category are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Name, price, and category are required",
+      });
     }
 
     const itemsData = { userId, name, price, quantity, category, subCategory };
@@ -351,50 +356,6 @@ const removeItems = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-// const newBill = async (req, res) => {
-//   try {
-//     const { name, address, items, total } = req.body;
-//     const { userId } = req;
-
-//     if (!name || !items || items.length === 0 || !total) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Please fill all fields" });
-//     }
-
-//     for (let item of items) {
-//       if (!item.name || !item.quantity || !item.rate || !item.amount) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "Each item must have name, quantity, rate, and amount",
-//         });
-//       }
-//     }
-
-//     const billData = {
-//       userId,
-//       name,
-//       address: address || "",
-//       items,
-//       total,
-//       date: Date.now(),
-//     };
-
-//     const newBill = new billModel(billData);
-//     await newBill.save();
-
-//     res.json({
-//       success: true,
-//       message: "Bill added successfully",
-//       billId: newBill._id,
-//     });
-//   } catch (error) {
-//     console.error("Error adding bill:", error);
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
-
 
 const newBill = async (req, res) => {
   try {
@@ -456,140 +417,6 @@ const newBill = async (req, res) => {
   }
 };
 
-
-// const getAllBill = async (req, res) => {
-//   try {
-//     const { userId } = req;
-//     const bills = await billModel.find({ userId });
-//     res.json({ success: true, bills });
-//   } catch (error) {
-//     console.error("Error fetching bills:", error);
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
-
-// const generateBillPDF = async (req, res) => {
-//   const { billId } = req.params;
-
-//   try {
-//     const billData = await billModel.findById(billId);
-//     const userData = await userModel.findById(billData.userId);
-
-//     if (!billData) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Bill not found" });
-//     }
-
-//     const browser = await puppeteer.launch({
-//       headless: "new", // Fix Puppeteer issue
-//       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-//     });
-
-//     const page = await browser.newPage();
-
-//     const billHTML = `<!DOCTYPE html>
-//       <html>
-//       <head>
-//         <style>
-//           body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; color: #222; padding: 0; margin: 0; }
-//           .container { max-width: 700px; margin: 32px auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px #0001; padding: 32px 40px 40px 40px; }
-//           .header { text-align: center; margin-bottom: 32px; }
-//           .logo { width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px; }
-//           .company { font-size: 2rem; font-weight: 700; color: #0891b2; letter-spacing: 1px; }
-//           .owner { color: #64748b; font-size: 1rem; margin-bottom: 2px; }
-//           .address { color: #64748b; font-size: 0.95rem; }
-//           .details { margin-bottom: 28px; border-radius: 8px; background: #f1f5f9; padding: 18px 24px; }
-//           .details p { margin: 6px 0; font-size: 1rem; }
-//           .details strong { color: #0e7490; }
-//           table { width: 100%; border-collapse: collapse; margin-top: 18px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px #0001; }
-//           th, td { padding: 12px 10px; text-align: left; }
-//           th { background: #e0f2fe; color: #0369a1; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #bae6fd; }
-//           tr:nth-child(even) { background: #f8fafc; }
-//           tr:nth-child(odd) { background: #f1f5f9; }
-//           td { font-size: 0.98rem; color: #222; border-bottom: 1px solid #e5e7eb; }
-//           .summary { margin-top: 24px; text-align: right; }
-//           .summary p { font-size: 1.1rem; margin: 2px 0; }
-//           .total { font-size: 1.3rem; color: #0891b2; font-weight: 700; margin-top: 8px; }
-//           .footer { margin-top: 36px; text-align: center; color: #64748b; font-size: 1rem; }
-//         </style>
-//       </head>
-//       <body>
-//         <div class="container">
-//           <div class="header">
-//             <img src="https://img.icons8.com/fluency/96/invoice.png" class="logo" alt="logo" />
-//             <div class="company">${userData.companyName}</div>
-//             <div class="owner">Prop. ${userData.name}</div>
-//             <div class="address">${userData.address}</div>
-//           </div>
-//           <div class="details">
-//             <p><strong>Customer Name:</strong> ${billData.name}</p>
-//             <p><strong>Address:</strong> ${billData.address || "N/A"}</p>
-//             <p><strong>Date:</strong> ${new Date(billData.date).toLocaleDateString()}</p>
-//           </div>
-//           <table>
-//             <thead>
-//               <tr>
-//                 <th>#</th>
-//                 <th>Description</th>
-//                 <th>Quantity</th>
-//                 <th>Rate</th>
-//                 <th>Amount</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               ${billData.items
-//         .map(
-//           (item, index) => `
-//                     <tr>
-//                       <td>${index + 1}</td>
-//                       <td>${item.name}</td>
-//                       <td>${item.quantity}</td>
-//                       <td>${item.rate.toFixed(2)}</td>
-//                       <td>${item.amount.toFixed(2)}</td>
-//                     </tr>
-//                   `
-//         )
-//         .join("")}
-//             </tbody>
-//           </table>
-//           <div class="summary">
-//             <p><strong>Subtotal:</strong> ${billData.total.toFixed(2)}</p>
-//             <p><strong>Paid:</strong> 0.00</p>
-//             <div class="total">Total Due: ${billData.total.toFixed(2)}</div>
-//           </div>
-//           <div class="footer">
-//             Thank you for your business!<br />
-//             <span style="font-size:0.95rem;">For queries, contact us at <b>${userData.phoneNumber || "N/A"}</b></span>
-//           </div>
-//         </div>
-//       </body>
-//       </html>`;
-
-//     await page.setContent(billHTML, { waitUntil: "domcontentloaded" });
-
-//     const pdfBuffer = await page.pdf({
-//       format: "A4",
-//       printBackground: true,
-//       path: null,
-//     });
-
-//     await browser.close();
-
-//     res.set({
-//       "Content-Type": "application/pdf",
-//       "Content-Disposition": `attachment; filename="bill_${billId}.pdf"`,
-//       "Content-Length": pdfBuffer.length,
-//     });
-
-//     res.status(200).end(pdfBuffer);
-//   } catch (error) {
-//     console.error("Error generating PDF:", error);
-//     res.status(500).json({ success: false, message: "Error generating PDF" });
-//   }
-// };
-
-
 const getAllBill = async (req, res) => {
   try {
     const { userId } = req;
@@ -603,10 +430,8 @@ const getAllBill = async (req, res) => {
 
     const bills = await billModel
       .find({ userId })
-      .sort({ date: -1 }) // latest bills first
-      .select(
-        "invoiceNo name address total date items"
-      );
+      .sort({ date: -1 })
+      .select("invoiceNo name address total date items");
 
     res.status(200).json({
       success: true,
@@ -621,109 +446,6 @@ const getAllBill = async (req, res) => {
   }
 };
 
-
-// const generateBillPDF = async (req, res) => {
-//   try {
-//     const { billId } = req.params;
-
-//     const bill = await billModel.findById(billId);
-//     const user = await userModel.findById(bill.userId);
-
-//     if (!bill) {
-//       return res.status(404).json({ success: false, message: "Bill not found" });
-//     }
-
-//     res.setHeader("Content-Type", "application/pdf");
-//     res.setHeader(
-//       "Content-Disposition",
-//       `attachment; filename=${bill.invoiceNo}.pdf`
-//     );
-
-//     const doc = new PDFDocument({ size: "A4", margin: 40 });
-//     doc.pipe(res);
-
-//     /* ---------- HEADER ---------- */
-//     doc
-//       .fontSize(22)
-//       .fillColor("#0ea5e9")
-//       .text(user.companyName || "Company Name", { align: "center" });
-
-//     doc
-//       .fontSize(10)
-//       .fillColor("#444")
-//       .text(`Prop. ${user.name}`, { align: "center" })
-//       .text(user.address || "", { align: "center" })
-//       .moveDown(1);
-
-//     doc.moveTo(40, doc.y).lineTo(555, doc.y).stroke();
-
-//     /* ---------- INVOICE INFO ---------- */
-//     doc.moveDown(1);
-//     doc.fontSize(12).fillColor("#000");
-//     doc.text(`Invoice No: ${bill.invoiceNo}`);
-//     doc.text(`Date: ${new Date(bill.date).toLocaleDateString()}`);
-//     doc.text(`Customer: ${bill.name}`);
-//     doc.text(`Address: ${bill.address || "N/A"}`);
-
-//     /* ---------- TABLE HEADER ---------- */
-//     doc.moveDown(1.5);
-//     const tableTop = doc.y;
-
-//     doc
-//       .fontSize(11)
-//       .fillColor("#0369a1")
-//       .text("Item", 40, tableTop)
-//       .text("Qty", 280, tableTop)
-//       .text("Rate", 340, tableTop)
-//       .text("Amount", 430, tableTop);
-
-//     doc.moveTo(40, tableTop + 15).lineTo(555, tableTop + 15).stroke();
-
-//     /* ---------- ITEMS ---------- */
-//     let y = tableTop + 25;
-
-//     bill.items.forEach((item, index) => {
-//       if (y > 750) {
-//         doc.addPage();
-//         y = 50;
-//       }
-
-//       doc
-//         .fontSize(10)
-//         .fillColor("#000")
-//         .text(item.name, 40, y)
-//         .text(item.quantity.toString(), 280, y)
-//         .text(item.rate.toFixed(2), 340, y)
-//         .text(item.amount.toFixed(2), 430, y);
-
-//       y += 20;
-//     });
-
-//     /* ---------- TOTAL ---------- */
-//     doc.moveDown(2);
-//     doc
-//       .fontSize(14)
-//       .fillColor("#0ea5e9")
-//       .text(`Total: ₹${bill.total.toFixed(2)}`, {
-//         align: "right",
-//       });
-
-//     /* ---------- SIGNATURE ---------- */
-//     doc.moveDown(3);
-//     doc
-//       .fontSize(10)
-//       .fillColor("#444")
-//       .text("Authorized Signature", { align: "right" });
-
-//     doc.end();
-//   } catch (error) {
-//     console.error("PDF Error:", error);
-//     res.status(500).json({ success: false, message: "PDF generation failed" });
-//   }
-// };
-
-
-
 const generateBillPDF = async (req, res) => {
   try {
     const { billId } = req.params;
@@ -732,7 +454,9 @@ const generateBillPDF = async (req, res) => {
     const user = await userModel.findById(bill.userId);
 
     if (!bill || !user) {
-      return res.status(404).json({ success: false, message: "Bill not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Bill not found" });
     }
 
     const doc = new PDFDocument({ size: "A4", margin: 40 });
@@ -740,7 +464,7 @@ const generateBillPDF = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=invoice_${bill.invoiceNo}.pdf`
+      `attachment; filename=invoice_${bill.invoiceNo}.pdf`,
     );
 
     doc.pipe(res);
@@ -777,12 +501,9 @@ const generateBillPDF = async (req, res) => {
       .text(`Name: ${bill.name}`, 40, infoTop, {
         width: 260,
       })
-      .text(
-        `Address: ${bill.address || "N/A"}`,
-        40,
-        infoTop + 18,
-        { width: 260 }
-      )
+      .text(`Address: ${bill.address || "N/A"}`, 40, infoTop + 18, {
+        width: 260,
+      })
       .text(`Mobile: ${bill.phone || ""}`, 40, infoTop + 34, {
         width: 260,
       })
@@ -802,12 +523,9 @@ const generateBillPDF = async (req, res) => {
       .font("Helvetica-Bold")
       .text("Date:", 360, infoTop + 18)
       .font("Helvetica")
-      .text(
-        new Date(bill.date).toLocaleDateString(),
-        460,
-        infoTop + 18,
-        { align: "right" }
-      );
+      .text(new Date(bill.date).toLocaleDateString(), 460, infoTop + 18, {
+        align: "right",
+      });
 
     /* Divider */
     doc
@@ -858,11 +576,7 @@ const generateBillPDF = async (req, res) => {
 
     /* ================= TOTAL ================= */
     y += 15;
-    doc
-      .moveTo(300, y)
-      .lineTo(560, y)
-      .strokeColor("#d1d5db")
-      .stroke();
+    doc.moveTo(300, y).lineTo(560, y).strokeColor("#d1d5db").stroke();
 
     y += 15;
 
@@ -878,19 +592,12 @@ const generateBillPDF = async (req, res) => {
     /* ================= SIGNATURE ================= */
     y += 80;
 
-    doc
-      .moveTo(420, y)
-      .lineTo(560, y)
-      .strokeColor("#000")
-      .lineWidth(1)
-      .stroke();
+    doc.moveTo(420, y).lineTo(560, y).strokeColor("#000").lineWidth(1).stroke();
 
-    doc
-      .fontSize(10)
-      .text("Authorized Signature", 420, y + 5, {
-        width: 140,
-        align: "center",
-      });
+    doc.fontSize(10).text("Authorized Signature", 420, y + 5, {
+      width: 140,
+      align: "center",
+    });
 
     /* ================= FOOTER ================= */
     doc
@@ -908,9 +615,6 @@ const generateBillPDF = async (req, res) => {
   }
 };
 
-
-
-
 const updateUserData = async (req, res) => {
   try {
     const { userId } = req;
@@ -918,7 +622,9 @@ const updateUserData = async (req, res) => {
 
     const user = await userModel.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     user.name = name || user.name;
@@ -927,7 +633,11 @@ const updateUserData = async (req, res) => {
     user.address = address || user.address;
 
     await user.save();
-    res.json({ success: true, userData: user, message: "User data updated successfully" });
+    res.json({
+      success: true,
+      userData: user,
+      message: "User data updated successfully",
+    });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
@@ -951,5 +661,3 @@ export {
   getAllBill,
   generateBillPDF,
 };
-
-

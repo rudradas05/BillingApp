@@ -1,6 +1,6 @@
 import Customer from "../models/customerModel.js";
 
-// Get all customers
+
 export const getAllCustomers = async (req, res) => {
     try {
         const customers = await Customer.find({ userId: req.userId });
@@ -10,7 +10,7 @@ export const getAllCustomers = async (req, res) => {
     }
 };
 
-// Add a new customer
+
 export const addCustomer = async (req, res) => {
     try {
         const { name, phone, email, address } = req.body;
